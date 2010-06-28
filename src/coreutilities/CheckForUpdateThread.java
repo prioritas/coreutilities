@@ -251,6 +251,7 @@ public class CheckForUpdateThread extends Thread
           {
             if (verbose) System.out.println("Not on line, or network not accessible");
             online = false;
+         // throw new RuntimeException("Cannot Connect to the Network");
             break;
           }
         }
@@ -258,11 +259,11 @@ public class CheckForUpdateThread extends Thread
         {
           if (verbose) System.out.println("Not on line, or network not accessible");
           online = false;
-       // ex.printStackTrace();
+      //  throw new RuntimeException("Cannot Connect to the Network", ex);
           break;
         }
       }
-//    Context.getInstance().fireNetworkOK(online);
+      CoreContext.getInstance().fireNetworkOk(online);
       if (online)
         System.out.println("software-up-to-date");
       if (online && nbUpdate > 0)
@@ -291,9 +292,9 @@ public class CheckForUpdateThread extends Thread
             ex.printStackTrace();
           }
         }
+        CoreContext.getInstance().fireUpdateCompleted(updatedFiles);
       }
     }
-    CoreContext.getInstance().fireUpdateCompleted(updatedFiles);
   }
 }
 
