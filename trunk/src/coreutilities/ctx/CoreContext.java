@@ -52,4 +52,13 @@ public class CoreContext
       l.updateCompleted(fList);
     }    
   }    
+
+  public void fireNetworkOk(boolean b)
+  {
+    for (int i=0; i < this.getListeners().size(); i++)
+    {
+      CoreEventListener l = this.getListeners().get(i);
+      l.networkOk(b);
+    }    
+  }    
 }
