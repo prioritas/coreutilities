@@ -151,7 +151,7 @@ public class CheckForUpdateThread extends Thread
                 }
                 else if (headerName.equals("Last-Modified"))
                 {
-                  //            System.out.println(headerName + " = " + headerValue);
+    //            System.out.println(headerName + " = " + headerValue);
                   try
                   {
                     SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z");
