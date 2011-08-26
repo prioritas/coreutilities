@@ -117,6 +117,7 @@ public class Utilities
     return macAddress;
   }
 
+  @SuppressWarnings("unchecked")
   public static void addURLToClassPath(URL url)
   {
     try
