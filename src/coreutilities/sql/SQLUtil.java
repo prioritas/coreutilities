@@ -9,9 +9,9 @@ import java.sql.Connection;
 public class SQLUtil 
 {
   // Default values  
-  private static String dbName   = "CHART";
-  private static String userName = "chart";
-  private static String password = "chart";
+  private static String dbName   = ".";
+  private static String userName = "SA"; // System Admin
+  private static String password = "";
   
   public static Connection getConnection() throws Exception 
   {
