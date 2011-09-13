@@ -10,6 +10,7 @@ public class SQLUtil
 {
   // Default values  
   private static String dbName   = ".";
+  private static String dbURL    = "//localhost:80/";
   private static String userName = "SA"; // System Admin
   private static String password = "";
   
@@ -24,6 +25,16 @@ public class SQLUtil
     return getConnection(dbLoc, dbName, userName, password);
   }
   
+  /**
+   * Get hSQL Connection in standalone.
+   * 
+   * @param dbLoc
+   * @param db
+   * @param user
+   * @param pwd
+   * @return
+   * @throws Exception
+   */
   public static Connection getConnection(String dbLoc, String db, String user, String pwd) 
          throws Exception
   {
@@ -49,7 +60,38 @@ public class SQLUtil
     } 
     catch(Exception e) 
     {
-      System.err.println("ChartLib*SQL Error: " + e.getMessage());
+      System.err.println("hSQL Error: " + e.getMessage());
+      throw e;
+    }
+    return cConnection;
+  }
+  
+  public static Connection getServerConnection(String dburl, String user, String pwd) 
+         throws Exception
+  {
+    dbURL   = dburl;
+    userName = user;
+    password = pwd;
+    Connection cConnection = null;
+  //  int max            = 500;
+  //  boolean persistent = true;
+  //  boolean update     = false;
+    try 
+    {
+      DriverManager.registerDriver(new org.hsqldb.jdbcDriver());
+      String connectString = "jdbc:hsqldb:hsql:" + dbURL;
+      System.out.println("Connecting to " + connectString);
+  //    cConnection = DriverManager.getConnection("jdbc:HypersonicSQL:" + dbName, userName, password);
+      cConnection = DriverManager.getConnection(connectString, userName, password);
+  //    Profile.listUnvisited();
+      cConnection.setAutoCommit(false);
+      System.out.println("Using " + cConnection.getMetaData().getDriverName() + ", " + 
+                                    cConnection.getMetaData().getDatabaseProductName() +  " " + 
+                                    cConnection.getMetaData().getDatabaseProductVersion()); 
+    } 
+    catch(Exception e) 
+    {
+      System.err.println("hSQL Error: " + e.getMessage());
       throw e;
     }
     return cConnection;
