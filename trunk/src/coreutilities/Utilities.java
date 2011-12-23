@@ -117,15 +117,15 @@ public class Utilities
     return macAddress;
   }
 
-  @SuppressWarnings("unchecked")
+//@SuppressWarnings("unchecked")
   public static void addURLToClassPath(URL url)
   {
     try
     {
       URLClassLoader urlClassLoader = (URLClassLoader) Thread.currentThread().getContextClassLoader();
-      Class<URLClassLoader> c = (Class<URLClassLoader>)Class.forName("java.net.URLClassLoader");
+      Class<?> c = /*(Class<URLClassLoader>)*/Class.forName("java.net.URLClassLoader");
       Class<?>[] parameterTypes = new Class<?>[1];
-      parameterTypes[0] = (Class<Object>)Class.forName("java.net.URL");
+      parameterTypes[0] = /*(Class<?>)*/Class.forName("java.net.URL");
       Method m = c.getDeclaredMethod("addURL", parameterTypes);
       m.setAccessible(true);
       Object[] args = new Object[1];
