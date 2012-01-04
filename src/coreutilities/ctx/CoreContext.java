@@ -1,11 +1,12 @@
 package coreutilities.ctx;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CoreContext
 {
   private static CoreContext context = null;
-  private transient ArrayList<CoreEventListener> applicationListeners = null;
+  private transient List<CoreEventListener> applicationListeners = null;
   
   private CoreContext()
   {
@@ -25,7 +26,7 @@ public class CoreContext
     System.gc();
   }
 
-  public ArrayList<CoreEventListener> getListeners()
+  public List<CoreEventListener> getListeners()
   {
     return applicationListeners;
   }
@@ -44,7 +45,7 @@ public class CoreContext
     this.getListeners().remove(l);
   }
   
-  public void fireUpdateCompleted(ArrayList<String> fList)
+  public void fireUpdateCompleted(List<String> fList)
   {
     for (int i=0; i < this.getListeners().size(); i++)
     {
