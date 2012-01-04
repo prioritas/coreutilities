@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+import java.util.List;
+
 import oracle.xml.parser.v2.DOMParser;
 
 import oracle.xml.parser.v2.XMLDocument;
@@ -60,9 +62,9 @@ public class CheckForUpdateThread extends Thread
   public void run()
   {
     String downloadMess = "";
-    ArrayList<String> updatedFiles = new ArrayList<String>();
+    List<String> updatedFiles = new ArrayList<String>();
     if (verbose) System.out.println("Checking update from " + System.getProperty("user.dir"));
-    ArrayList<String[]> resource = null;
+    List<String[]> resource = null;
     boolean restartRequired = false;
     try
     {
