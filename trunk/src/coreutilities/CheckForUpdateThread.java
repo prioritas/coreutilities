@@ -196,7 +196,7 @@ public class CheckForUpdateThread extends Thread
                     updateDir.mkdirs();
   
                   // Write the file to copy later
-                  if (verbose) System.out.println("Writing files to update [" + tempFile + "]");
+                  if (verbose) System.out.println("\n*** Writing files to update [" + tempFile + "] ***\n");
                   InputStream urlIs = conn.getInputStream();
                   OutputStream os = new FileOutputStream(new File(tempFile));
                   Utilities.copy(urlIs, os);
