@@ -33,8 +33,8 @@ public class CheckForUpdateThread extends Thread
   private DOMParser parser = null;
   private String structureFileName = null;
   private boolean proceed;
-  private boolean verbose = false;
-  private boolean force = false;
+  private boolean verbose = System.getProperty("verbose", "false").equals("true");
+  private boolean force   = false;
 
   public CheckForUpdateThread(String softid, 
                               DOMParser parser, 
@@ -76,6 +76,7 @@ public class CheckForUpdateThread extends Thread
         parser.parse(new File(structureFileName).toURI().toURL());
         doc = parser.getDocument();
       }
+      System.out.println("Checking updates for " + softid);
       NodeList nl = doc.selectNodes("//soft[@id='" + softid + "']/data");
       int nbResource = nl.getLength();
       if (verbose) System.out.println("Checking for update for " + nbResource + " file(s).");
@@ -153,7 +154,7 @@ public class CheckForUpdateThread extends Thread
                 }
                 else if (headerName.equals("Last-Modified"))
                 {
-    //            System.out.println(headerName + " = " + headerValue);
+                  System.out.println("for " + url.toString() + ", " + headerName + " = " + headerValue);
                   try
                   {
                     SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z");
@@ -175,7 +176,7 @@ public class CheckForUpdateThread extends Thread
             if (force || ( /*nbUpdate < 4 || */(fileDate == null && urlDate != null) || (fileDate != null && urlDate != null && fileDate.getTime() < urlDate.getTime())))
             {
               nbUpdate++;
-              System.out.println("Update available for " + pair[1]);
+              System.out.println("Update available for " + pair[1] + (force?"":(", " + fileDate + " < " + urlDate)));
   
               if (proceed)
               {
@@ -246,7 +247,7 @@ public class CheckForUpdateThread extends Thread
             }
             else
             {
-              if (verbose) System.out.println(pair[1] + " is up to date");
+              if (verbose) System.out.println(pair[1] + " is up to date" + (force?"":(", " + fileDate + " compared to " + urlDate)));
             }
           }
           else
