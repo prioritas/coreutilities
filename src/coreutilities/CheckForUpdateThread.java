@@ -19,6 +19,8 @@ import java.util.Date;
 
 import java.util.List;
 
+import java.util.Locale;
+
 import oracle.xml.parser.v2.DOMParser;
 
 import oracle.xml.parser.v2.XMLDocument;
@@ -35,6 +37,8 @@ public class CheckForUpdateThread extends Thread
   private boolean proceed;
   private boolean verbose = System.getProperty("verbose", "false").equals("true");
   private boolean force   = false;
+  
+  private Locale locale = Locale.ENGLISH;
 
   public CheckForUpdateThread(String softid, 
                               DOMParser parser, 
@@ -154,10 +158,10 @@ public class CheckForUpdateThread extends Thread
                 }
                 else if (headerName.equals("Last-Modified"))
                 {
-                  System.out.println("for " + url.toString() + ", " + headerName + " = " + headerValue);
+                  if (verbose) System.out.println("for " + url.toString() + ", " + headerName + " = " + headerValue);
                   try
                   {
-                    SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z");
+                    SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", locale);
                     urlDate = formatter.parse(headerValue);
                   }
                   catch (ParseException e)
@@ -173,10 +177,11 @@ public class CheckForUpdateThread extends Thread
               }
             }
             
-            if (force || ( /*nbUpdate < 4 || */(fileDate == null && urlDate != null) || (fileDate != null && urlDate != null && fileDate.getTime() < urlDate.getTime())))
+            if (force || ( /*nbUpdate < 4 || */(fileDate == null && urlDate != null) || 
+                                               (fileDate != null && urlDate != null && fileDate.getTime() < urlDate.getTime())))
             {
               nbUpdate++;
-              System.out.println("Update available for " + pair[1] + (force?"":(", " + fileDate + " < " + urlDate)));
+              System.out.println("Update available for " + pair[1] + (force?"":(", local:" + fileDate + " < remote:" + urlDate)));
   
               if (proceed)
               {
