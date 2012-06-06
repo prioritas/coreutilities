@@ -177,7 +177,7 @@ public class CheckForUpdateThread extends Thread
               }
             }
             
-            if (force || ( /*nbUpdate < 4 || */(fileDate == null && urlDate != null) || 
+            if (force || ( /*nbUpdate < 4 || */ /*(fileDate == null && urlDate != null) || */ 
                                                (fileDate != null && urlDate != null && fileDate.getTime() < urlDate.getTime())))
             {
               nbUpdate++;
