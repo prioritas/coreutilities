@@ -58,6 +58,5 @@
     <groupId>OlivSoft</groupId>
     <artifactId>OlivSoft</artifactId>
     <version>1.0</version>
-    <relativePath>../weather-wizard.pom.xml</relativePath>
   </parent>
 </project>
