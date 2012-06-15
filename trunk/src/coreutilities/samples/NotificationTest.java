@@ -24,7 +24,7 @@ public class NotificationTest
   {
     String notificationDate = "";
     Calendar now = new GregorianCalendar();
-    now.setTimeZone(TimeZone.getTimeZone("Pacific/Los_Angeles"));
+    now.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
     Date providedDate = now.getTime();
     
     Properties props = new Properties();
