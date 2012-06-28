@@ -1,5 +1,10 @@
 package coreutilities;
 
+import java.awt.Font;
+import java.awt.Graphics;
+
+import java.awt.Point;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -301,7 +306,62 @@ public class Utilities
     }
     return fileName;
   }  
-
+  
+  public static void drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows)
+  {
+    drawPanelTable(data, gr, topLeft, betweenCols, betweenRows, null);
+  }
+  
+  public final static int LEFT_ALIGNED   = 0;
+  public final static int RIGHT_ALIGNED  = 1;
+  public final static int CENTER_ALIGNED = 2;
+  
+  public static void drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows, int[] colAlignment)
+  {
+    Font f = gr.getFont();
+    int[] maxLength = new int[data[0].length];
+    for (int i=0; i<maxLength.length; i++)
+      maxLength[i] = 0;
+    
+    for (int row=0; row<data.length; row++)
+    {
+      for (int col=0; col<data[row].length; col++)
+      {
+        int strWidth  = gr.getFontMetrics(f).stringWidth(data[row][col]);
+        maxLength[col] = Math.max(maxLength[col], strWidth);
+      }
+    }
+    int x = topLeft.x;
+    int y = topLeft.y;
+    
+    for (int row=0; row<data.length; row++)
+    {
+      for (int col=0; col<data[row].length; col++)
+      {
+        int _x = x;
+        for (int c=1; c<=col; c++)
+          _x += (betweenCols + maxLength[c - 1]);
+        if (colAlignment != null && colAlignment[col] != LEFT_ALIGNED)
+        {
+          int strWidth  = gr.getFontMetrics(f).stringWidth(data[row][col]);
+          switch (colAlignment[col])
+          {
+            case RIGHT_ALIGNED:
+              _x += (maxLength[col] - strWidth);
+              break;
+            case CENTER_ALIGNED:
+              _x += ((maxLength[col] - strWidth) / 2);
+              break;
+            default:
+              break;
+          }
+        }
+        gr.drawString(data[row][col], _x, y);
+      }
+      y += (f.getSize() + betweenRows);
+    }    
+  }
+  
   static class ToolFileFilter extends FileFilter
   {
     private Hashtable<String, FileFilter> filters = null;
