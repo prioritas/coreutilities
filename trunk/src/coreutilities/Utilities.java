@@ -307,22 +307,23 @@ public class Utilities
     return fileName;
   }  
   
-  public static void drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows)
+  public static int drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows)
   {
-    drawPanelTable(data, gr, topLeft, betweenCols, betweenRows, null);
+    return drawPanelTable(data, gr, topLeft, betweenCols, betweenRows, null);
   }
   
   public final static int LEFT_ALIGNED   = 0;
   public final static int RIGHT_ALIGNED  = 1;
   public final static int CENTER_ALIGNED = 2;
   
-  public static void drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows, int[] colAlignment)
+  public static int drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows, int[] colAlignment)
   {
     Font f = gr.getFont();
     int[] maxLength = new int[data[0].length];
     for (int i=0; i<maxLength.length; i++)
       maxLength[i] = 0;
     
+    // Identify the max length for each column
     for (int row=0; row<data.length; row++)
     {
       for (int col=0; col<data[row].length; col++)
@@ -334,6 +335,7 @@ public class Utilities
     int x = topLeft.x;
     int y = topLeft.y;
     
+    // Now display
     for (int row=0; row<data.length; row++)
     {
       for (int col=0; col<data[row].length; col++)
@@ -360,6 +362,7 @@ public class Utilities
       }
       y += (f.getSize() + betweenRows);
     }    
+    return y;
   }
   
   static class ToolFileFilter extends FileFilter
