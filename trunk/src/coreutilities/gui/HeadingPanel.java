@@ -1,17 +1,27 @@
 package coreutilities.gui;
 
+import coreutilities.ctx.CoreContext;
+
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
 
 public class HeadingPanel 
-     extends JPanel 
+     extends JPanel  
+  implements MouseListener, MouseMotionListener
 {
   public final static int ROSE                  = 0;
   public final static int ZERO_TO_360           = 1;
@@ -21,19 +31,32 @@ public class HeadingPanel
   
   private int hdg = 0;
   private boolean whiteOnBlack = true;
-  private boolean draggable = true;
+  private boolean draggable = false;
   private float roseWidth = 60;
   private boolean withNumber = true;
   private boolean withCardinalPoints = true;
+  
+  private boolean glossy = false;
   
   public HeadingPanel()
   {
     this(ROSE);
   }
   
+  public HeadingPanel(boolean b)
+  {
+    this(ROSE, b);
+  }
+  
   public HeadingPanel(int roseOption)
   {
+    this(roseOption, false);
+  }
+  
+  public HeadingPanel(int roseOption, boolean b)
+  {
     this.roseType = roseOption;
+    this.glossy = b;
     try
     {
       jbInit();
@@ -70,26 +93,41 @@ public class HeadingPanel
     int w = this.getWidth();
     int h = this.getHeight();
     final int FONT_SIZE = 12;
-    if (withColorGradient)
+
+    Color startColor = Color.black; // new Color(255, 255, 255);
+    Color endColor   = Color.gray; // new Color(102, 102, 102);
+    if (!whiteOnBlack)
     {
-      Color startColor = Color.black; // new Color(255, 255, 255);
-      Color endColor   = Color.gray; // new Color(102, 102, 102);
-      if (!whiteOnBlack)
-      {
-        startColor = Color.lightGray;
-        endColor   = Color.white;
-      }
-//    GradientPaint gradient = new GradientPaint(0, 0, startColor, this.getWidth(), this.getHeight(), endColor);
-//    GradientPaint gradient = new GradientPaint(0, this.getHeight(), startColor, this.getWidth(), 0, endColor); // Horizontal
-//    GradientPaint gradient = new GradientPaint(0, 0, startColor, 0, this.getHeight(), endColor); // vertical
-      GradientPaint gradient = new GradientPaint(0, this.getHeight(), startColor, 0, 0, endColor); // vertical, upside down
-      ((Graphics2D)gr).setPaint(gradient);
+      startColor = Color.lightGray;
+      endColor   = Color.white;
+    }
+
+    if (glossy)
+    {
+      drawGlossyRectangularDisplay((Graphics2D)gr, 
+                                   new Point(0, 0), 
+                                   new Point(this.getWidth(), this.getHeight()), 
+                                   endColor, 
+                                   startColor, 
+                                   1f);      
+      
     }
     else
     {
-      gr.setColor(whiteOnBlack?Color.black:Color.white);
+      if (withColorGradient)
+      {
+  //    GradientPaint gradient = new GradientPaint(0, 0, startColor, this.getWidth(), this.getHeight(), endColor);
+  //    GradientPaint gradient = new GradientPaint(0, this.getHeight(), startColor, this.getWidth(), 0, endColor); // Horizontal
+  //    GradientPaint gradient = new GradientPaint(0, 0, startColor, 0, this.getHeight(), endColor); // vertical
+        GradientPaint gradient = new GradientPaint(0, this.getHeight(), startColor, 0, 0, endColor); // vertical, upside down
+        ((Graphics2D)gr).setPaint(gradient);
+      }
+      else
+      {
+        gr.setColor(whiteOnBlack?Color.black:Color.white);
+      }
+      gr.fillRect(0, 0, w, h);
     }
-    gr.fillRect(0, 0, w, h);
     // Width: 30 on each side = 60 (default)
     gr.setColor(whiteOnBlack?Color.white:Color.black);
     float oneDegree = (float)w / roseWidth; // 30 degrees each side
@@ -234,6 +272,11 @@ public class HeadingPanel
   public void setDraggable(boolean draggable)
   {
     this.draggable = draggable;
+    if (draggable)
+    {
+      addMouseMotionListener(this);
+      addMouseListener(this);      
+    }
   }
 
   public void setRoseWidth(float roseWidth)
@@ -259,5 +302,70 @@ public class HeadingPanel
   public boolean isWithCardinalPoints()
   {
     return withCardinalPoints;
+  }
+  
+  private static void drawGlossyRectangularDisplay(Graphics2D g2d, Point topLeft, Point bottomRight, Color lightColor, Color darkColor, float transparency)
+  {
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+    g2d.setPaint(null);
+
+    g2d.setColor(darkColor);
+
+    int width  = bottomRight.x - topLeft.x;
+    int height = bottomRight.y - topLeft.y;
+
+    g2d.fillRoundRect(topLeft.x , topLeft.y, width, height, 10, 10);
+
+    Point gradientOrigin = new Point(0, //topLeft.x + (width) / 2,
+                                     0);
+    GradientPaint gradient = new GradientPaint(gradientOrigin.x, 
+                                               gradientOrigin.y, 
+                                               lightColor, 
+                                               gradientOrigin.x, 
+                                               gradientOrigin.y + (height / 3), 
+                                               darkColor); // vertical, light on top
+    g2d.setPaint(gradient);
+    int offset = 1; //(int)(width * 0.025);
+    int arcRadius = 5;
+    g2d.fillRoundRect(topLeft.x + offset, topLeft.y + offset, (width - (2 * offset)), (height - (2 * offset)), 2 * arcRadius, 2 * arcRadius); 
+  }
+
+  public void mouseDragged(MouseEvent e)
+  {
+    int hdgOffset = (int)((mousePressedFrom.x - e.getPoint().x) * (60D / (double)this.getWidth()));
+    hdg = headingFrom + hdgOffset;
+    this.repaint();
+    CoreContext.getInstance().fireHeadingHasChanged(hdg);
+  }
+
+  public void mouseMoved(MouseEvent e)
+  {
+    int hdgOffset = (int)(((this.getWidth() / 2) - e.getPoint().x) * (60D / (double)this.getWidth()));
+    this.setToolTipText(Integer.toString(hdg - hdgOffset));
+  }
+
+  public void mouseClicked(MouseEvent e)
+  {
+  }
+
+  Point mousePressedFrom = null;
+  int headingFrom = 0;
+  
+  public void mousePressed(MouseEvent e)
+  {
+    mousePressedFrom = e.getPoint();  
+    headingFrom = hdg;
+  }
+
+  public void mouseReleased(MouseEvent e)
+  {
+  }
+
+  public void mouseEntered(MouseEvent e)
+  {
+  }
+
+  public void mouseExited(MouseEvent e)
+  {
   }
 }

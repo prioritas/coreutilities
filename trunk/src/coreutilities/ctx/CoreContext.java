@@ -6,7 +6,7 @@ import java.util.List;
 public class CoreContext
 {
   private static CoreContext context = null;
-  private transient List<CoreEventListener> applicationListeners = null;
+  private List<CoreEventListener> applicationListeners = null;
   
   private CoreContext()
   {
@@ -60,6 +60,15 @@ public class CoreContext
     {
       CoreEventListener l = this.getListeners().get(i);
       l.networkOk(b);
+    }    
+  }    
+
+  public void fireHeadingHasChanged(int hdg)
+  {
+    for (int i=0; i < this.getListeners().size(); i++)
+    {
+      CoreEventListener l = this.getListeners().get(i);
+      l.headingHasChanged(hdg);
     }    
   }    
 }
