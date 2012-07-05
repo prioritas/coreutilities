@@ -109,8 +109,7 @@ public class HeadingPanel
                                    new Point(this.getWidth(), this.getHeight()), 
                                    endColor, 
                                    startColor, 
-                                   1f);      
-      
+                                   1f);            
     }
     else
     {
@@ -171,7 +170,8 @@ public class HeadingPanel
     gr.setColor(Color.red);
     gr.drawLine(w/2, 0, w/2, h);
     //
-    this.setToolTipText(Integer.toString(hdg) + "\272");
+    while (hdg < 0) hdg += 360;
+    this.setToolTipText(Integer.toString(hdg % 360) + "\272");
   }
 
   private String getRoseStr(int rtd)
@@ -341,7 +341,9 @@ public class HeadingPanel
   public void mouseMoved(MouseEvent e)
   {
     int hdgOffset = (int)(((this.getWidth() / 2) - e.getPoint().x) * (60D / (double)this.getWidth()));
-    this.setToolTipText(Integer.toString(hdg - hdgOffset));
+    int mouseHdg = hdg - hdgOffset;
+    while (mouseHdg < 0) mouseHdg += 360;
+    this.setToolTipText(Integer.toString(mouseHdg % 360) + "\272");
   }
 
   public void mouseClicked(MouseEvent e)
