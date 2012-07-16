@@ -53,7 +53,11 @@ public class NotificationCheck
     Hashtable<Date, String> map = new Hashtable<Date, String>();
     try
     {
-      String url = NOTIFICATION_URL + "?after=" + URLEncoder.encode(date, "UTF-8") + "&prod=" + prod;
+      String url = NOTIFICATION_URL;
+      if (date != null)
+        url += "?after=" + URLEncoder.encode(date, "UTF-8") + "&prod=" + prod;
+      else
+        url +=  "?prod=" + prod;
       System.out.println(url);
       String notification = HTTPClient.getContent(url);
       if (verbose)
