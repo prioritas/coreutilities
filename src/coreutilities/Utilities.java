@@ -1,5 +1,6 @@
 package coreutilities;
 
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Graphics;
 
@@ -14,6 +15,7 @@ import java.io.OutputStream;
 
 import java.lang.reflect.Method;
 
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -145,23 +147,26 @@ public class Utilities
 
   public static void openInBrowser(String page) throws Exception
   {
-    String os = System.getProperty("os.name");
-    if (os.indexOf("Windows") > -1)
-    {
-      String cmd = "";
-      if (page.indexOf(" ") != -1)
-        cmd = "cmd /k start \"" + page + "\"";
-      else
-        cmd = "cmd /k start " + page + "";
-      System.out.println("Command:" + cmd);
-      Runtime.getRuntime().exec(cmd); // Can contain blanks...
-    }
-    else if (os.indexOf("Linux") > -1) // Assuming htmlview
-      Runtime.getRuntime().exec("htmlview " + page);
-    else
-    {
-      throw new RuntimeException("OS [" + os + "] not supported yet");
-    }
+    URI uri = new URI(page);
+    Desktop.getDesktop().browse(uri);
+    
+//    String os = System.getProperty("os.name");
+//    if (os.indexOf("Windows") > -1)
+//    {
+//      String cmd = "";
+//      if (page.indexOf(" ") != -1)
+//        cmd = "cmd /k start \"" + page + "\"";
+//      else
+//        cmd = "cmd /k start " + page + "";
+//      System.out.println("Command:" + cmd);
+//      Runtime.getRuntime().exec(cmd); // Can contain blanks...
+//    }
+//    else if (os.indexOf("Linux") > -1) // Assuming htmlview
+//      Runtime.getRuntime().exec("htmlview " + page);
+//    else
+//    {
+//      throw new RuntimeException("OS [" + os + "] not supported yet");
+//    }
   }
   
   public static void showFileSystem(String where) throws Exception
