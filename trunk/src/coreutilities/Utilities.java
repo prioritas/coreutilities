@@ -148,6 +148,7 @@ public class Utilities
   public static void openInBrowser(String page) throws Exception
   {
     URI uri = new URI(page);
+//  System.out.println("Opening in browser:[" + uri.toString() + "]");
     Desktop.getDesktop().browse(uri);
     
 //    String os = System.getProperty("os.name");
