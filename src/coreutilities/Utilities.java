@@ -183,7 +183,7 @@ public class Utilities
       Runtime.getRuntime().exec("nautilus " + where);
     else
     {
-      throw new RuntimeException("OS [" + os + "] not supported yet");
+      throw new RuntimeException("showFileSystem method on OS [" + os + "] not implemented yet.\nFor now, you should open [" + where +"] by yourself.");
     }
   }    
   
