@@ -181,11 +181,38 @@ public class Utilities
     }
     else if (os.indexOf("Linux") > -1) 
       Runtime.getRuntime().exec("nautilus " + where);
+    else if (os.indexOf("Mac") > -1)
+    {
+      String[] applScriptCmd = 
+      {
+        "osascript",
+        "-e", "tell application \"Finder\"",
+        "-e", "activate",
+        "-e", "<open cmd>", // open cmd: index 6
+        "-e", "end tell"
+      };
+      String pattern = File.separator;
+      if (pattern.equals("\\"))
+        pattern = "\\\\";
+      String[] pathElem = where.split(pattern);
+      String cmd = "open ";
+      for (int i=pathElem.length - 1; i>0; i--)
+        cmd += ("folder \"" + pathElem[i] + "\" of ");
+      cmd += "startup disk";
+      applScriptCmd[6] = cmd;
+      Runtime.getRuntime().exec(applScriptCmd);
+    }
     else
     {
       throw new RuntimeException("showFileSystem method on OS [" + os + "] not implemented yet.\nFor now, you should open [" + where +"] by yourself.");
     }
   }    
+  
+  public static void main(String[] args) throws Exception
+  {
+    System.setProperty("os.name", "Mac OS X");
+    showFileSystem(System.getProperty("user.dir"));
+  }
   
   public static int sign(double d)
   {
