@@ -177,7 +177,7 @@ public class Utilities
     {
       String cmd = "cmd /k start /D\"" + where + "\" .";
   //    System.out.println("Executing [" + cmd + "]");
-      Runtime.getRuntime().exec(cmd); // Can contain blanks...
+      Runtime.getRuntime().exec(cmd); // Can contain blanks, need quotes around it...
     }
     else if (os.indexOf("Linux") > -1) 
       Runtime.getRuntime().exec("nautilus " + where);
