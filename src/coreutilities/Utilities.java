@@ -1,9 +1,13 @@
 package coreutilities;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.GradientPaint;
 import java.awt.Graphics;
 
+import java.awt.Graphics2D;
 import java.awt.Point;
 
 import java.io.BufferedReader;
@@ -351,9 +355,31 @@ public class Utilities
   
   public static int drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows, int[] colAlignment)
   {
+    return drawPanelTable(data, gr, topLeft, betweenCols, betweenRows, colAlignment, false, null, 0f);  
+  }
+  
+  public static int drawPanelTable(String[][] data, Graphics gr, Point topLeft, int betweenCols, int betweenRows, int[] colAlignment, boolean paintBackground, Color bgColor, float bgTransparency)
+  {
+    return drawPanelTable(data, gr, topLeft, betweenCols, betweenRows, colAlignment, paintBackground, bgColor, null, bgTransparency, 1f);
+  }
+  
+  public static int drawPanelTable(String[][] data, 
+                                   Graphics gr, 
+                                   Point topLeft, 
+                                   int betweenCols, 
+                                   int betweenRows,
+                                   int[] colAlignment, 
+                                   boolean paintBackground, 
+                                   Color bgLightColor, 
+                                   Color bgDarkColor, 
+                                   float bgTransparency, 
+                                   float textTransparency)
+  {
+    int w = 0, h = 0;
+    
     Font f = gr.getFont();
-    int[] maxLength = new int[data[0].length];
-    for (int i=0; i<maxLength.length; i++)
+    int[] maxLength = new int[data[0].length]; // Max length for each column
+    for (int i=0; i<maxLength.length; i++) // init. All to 0
       maxLength[i] = 0;
     
     // Identify the max length for each column
@@ -368,6 +394,32 @@ public class Utilities
     int x = topLeft.x;
     int y = topLeft.y;
     
+    w = betweenCols;
+    for (int i=0; i<maxLength.length; i++)
+      w += (maxLength[i] + betweenCols);
+    h = betweenRows + (data.length * (f.getSize() + betweenRows)) + betweenRows;
+    
+    if (paintBackground) // Glossy
+    {
+      boolean glossy = (bgLightColor != null && bgDarkColor != null);
+      Color c = gr.getColor();
+      if (glossy)
+      {
+        drawGlossyRectangularDisplay((Graphics2D)gr, 
+                                     new Point(x - betweenCols, y - f.getSize() - betweenRows),
+                                     new Point(x - betweenCols + w, y - f.getSize() - betweenRows + h),
+                                     bgLightColor,
+                                     bgDarkColor,
+                                     bgTransparency);      
+      }
+      else
+      {
+        gr.setColor(bgLightColor);
+        gr.fillRoundRect(x - betweenCols, y - f.getSize() - betweenRows, w, h, 10, 10);
+      }
+      gr.setColor(c);
+    }
+    ((Graphics2D)gr).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, textTransparency));
     // Now display
     for (int row=0; row<data.length; row++)
     {
@@ -396,6 +448,32 @@ public class Utilities
       y += (f.getSize() + betweenRows);
     }    
     return y;
+  }
+
+  private static void drawGlossyRectangularDisplay(Graphics2D g2d, Point topLeft, Point bottomRight, Color lightColor, Color darkColor, float transparency)
+  {
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+    g2d.setPaint(null);
+
+    g2d.setColor(darkColor);
+
+    int width  = bottomRight.x - topLeft.x;
+    int height = bottomRight.y - topLeft.y;
+
+    g2d.fillRoundRect(topLeft.x , topLeft.y, width, height, 10, 10);
+
+    Point gradientOrigin = new Point(topLeft.x + (width) / 2,
+                                     topLeft.y);
+    GradientPaint gradient = new GradientPaint(gradientOrigin.x, 
+                                               gradientOrigin.y, 
+                                               lightColor, 
+                                               gradientOrigin.x, 
+                                               gradientOrigin.y + (height / 3), 
+                                               darkColor); // vertical, light on top
+    g2d.setPaint(gradient);
+    int offset = 3;
+    int arcRadius = 5;
+    g2d.fillRoundRect(topLeft.x + offset, topLeft.y + offset, (width - (2 * offset)), (height - (2 * offset)), 2 * arcRadius, 2 * arcRadius); 
   }
   
   static class ToolFileFilter extends FileFilter
