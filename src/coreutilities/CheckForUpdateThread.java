@@ -2,6 +2,8 @@ package coreutilities;
 
 import coreutilities.ctx.CoreContext;
 
+import coreutilities.gui.UpdateTablePanel;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,6 +23,8 @@ import java.util.List;
 
 import java.util.Locale;
 
+import javax.swing.JOptionPane;
+
 import oracle.xml.parser.v2.DOMParser;
 
 import oracle.xml.parser.v2.XMLDocument;
@@ -37,6 +41,7 @@ public class CheckForUpdateThread extends Thread
   private boolean proceed;
   private boolean verbose = System.getProperty("verbose", "false").equals("true");
   private boolean force   = false;
+  private boolean confirm = false;
   
   private Locale locale = Locale.ENGLISH;
 
@@ -45,7 +50,7 @@ public class CheckForUpdateThread extends Thread
                               String structureFileName, 
                               boolean proceed)
   {
-    this(softid, parser, structureFileName, proceed, false, false);
+    this(softid, parser, structureFileName, proceed, false, true, false);
   }
   
   public CheckForUpdateThread(String softid, 
@@ -53,6 +58,7 @@ public class CheckForUpdateThread extends Thread
                               String structureFileName, 
                               boolean proceed,
                               boolean verbose,
+                              boolean confirm,
                               boolean force)
   {
     this.softid = softid;
@@ -61,6 +67,7 @@ public class CheckForUpdateThread extends Thread
     this.proceed = proceed;
     this.verbose = verbose;
     this.force = force;
+    this.confirm = confirm;
   }
 
   public void run()
@@ -69,6 +76,8 @@ public class CheckForUpdateThread extends Thread
     List<String> updatedFiles = new ArrayList<String>();
     if (verbose) System.out.println("Checking update from " + System.getProperty("user.dir"));
     List<String[]> resource = null;
+    List<String[]> recap    = new ArrayList<String[]>();
+    
     boolean restartRequired = false;
     try
     {
@@ -83,7 +92,8 @@ public class CheckForUpdateThread extends Thread
       System.out.println("Checking updates for " + softid);
       NodeList nl = doc.selectNodes("//soft[@id='" + softid + "']/data");
       int nbResource = nl.getLength();
-      if (verbose) System.out.println("Checking for update for " + nbResource + " file(s).");
+      if (verbose) 
+        System.out.println("Checking for update for " + nbResource + " file(s).");
       resource = new ArrayList<String[]>(nbResource);
       for (int i = 0; i < nbResource; i++)
       {
@@ -136,7 +146,8 @@ public class CheckForUpdateThread extends Thread
           conn.connect(); // Triggers exception if necessary
           if (conn != null)
           {
-            if (verbose) System.out.println("-- Opened connection for " + url.toString());
+            if (verbose) 
+              System.out.println("-- Opened connection for " + url.toString());
             // List all the response headers from the server.
             // Note: The first call to getHeaderFieldKey() will implicit send
             // the HTTP request to the server.
@@ -158,7 +169,8 @@ public class CheckForUpdateThread extends Thread
                 }
                 else if (headerName.equals("Last-Modified"))
                 {
-                  if (verbose) System.out.println("for " + url.toString() + ", " + headerName + " = " + headerValue);
+                  if (verbose) 
+                    System.out.println("for " + url.toString() + ", " + headerName + " = " + headerValue);
                   try
                   {
                     SimpleDateFormat formatter = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", locale);
@@ -182,93 +194,116 @@ public class CheckForUpdateThread extends Thread
             {
               nbUpdate++;
               System.out.println("Update available for " + pair[1] + (force?"":(", local:" + fileDate + " < remote:" + urlDate)));
-  
-              if (proceed)
-              {
-                if (restart)
-                {
-                  restartRequired = true;
-                  // Write XML Doc
-                  XMLElement update = (XMLElement) updateDoc.createElement("update");
-                  root.appendChild(update);
-                  update.setAttribute("id", Integer.toString(nbUpdate));
-                  update.setAttribute("destination", pair[1]);
-                  String tempFile = "update" + File.separator + pair[1].substring(pair[1].lastIndexOf("/") + 1);
-                  update.setAttribute("origin", tempFile);
-  
-                  File updateDir = new File("update");
-                  if (!updateDir.exists())
-                    updateDir.mkdirs();
-  
-                  // Write the file to copy later
-                  if (verbose) System.out.println("\n*** Writing files to update [" + tempFile + "] ***\n");
-                  InputStream urlIs = conn.getInputStream();
-                  OutputStream os = new FileOutputStream(new File(tempFile));
-                  Utilities.copy(urlIs, os);
-                  os.close();
-                }
-                // 1 - Rename original file
-                try
-                {
-                  if (localFile.exists())
-                  {
-                    File backup = Utilities.findFileName(pair[1]);
-                    if (verbose) System.out.println("Renaming " + pair[1] + " (" + localFile.getName() + ") to " + backup.getName());
-                    Utilities.copy(new FileInputStream(localFile), new FileOutputStream(backup));
-                  }
-                }
-                catch (Exception ex)
-                {
-                  System.err.println("Renaming old files");
-                  ex.printStackTrace();
-                }
-                // 2 - Download
-                /*
-                 * This is now done on exit if restart is required
-                 */
-                if (!restart)
-                {
-                  try
-                  {
-                    InputStream urlIs = conn.getInputStream();
-                    if (!localFile.exists())
-                    {
-                      File dir = new File(localFile.getAbsolutePath().substring(0, localFile.getAbsolutePath().lastIndexOf(File.separator)));
-                      if (!dir.exists())
-                        dir.mkdirs();
-                    }
-                    OutputStream os = new FileOutputStream(localFile);
-                    Utilities.copy(urlIs, os);
-                    os.close();
-                  }
-                  catch (Exception ioe)
-                  {
-                    ioe.printStackTrace();
-                  }
-                }
-              }
-              downloadMess += (pair[1] + "\n");
-              updatedFiles.add(pair[1]);
+              recap.add(new String[] {pair[0],                   // URL 
+                                      pair[1],                   // File Name
+                                      Boolean.toString(restart), // Restart required
+                                      Long.toString(fileDate.getTime()),       // Current file date
+                                      Long.toString(urlDate.getTime()) });     // New file date
             }
-            else
-            {
-              if (verbose) System.out.println(pair[1] + " is up to date" + (force?"":(", " + fileDate + " compared to " + urlDate)));
-            }
-          }
-          else
-          {
-            if (verbose) System.out.println("Not on line, or network not accessible");
-            online = false;
-         // throw new RuntimeException("Cannot Connect to the Network");
-            break;
           }
         }
         catch (Exception ex)
         {
-          if (verbose) System.out.println("Not on line, or network not accessible");
-          online = false;
-      //  throw new RuntimeException("Cannot Connect to the Network", ex);
-          break;
+          ex.printStackTrace();
+        }
+      }
+      if (recap.size() > 0 && proceed && confirm)
+      {
+        String mess = Integer.toString(recap.size()) + " update(s) available.\nDo we proceed?";
+        UpdateTablePanel utp = new UpdateTablePanel(mess, recap);
+        int resp = JOptionPane.showConfirmDialog(null, utp, "Software update", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (resp == JOptionPane.OK_OPTION)
+          proceed = true;
+        else
+          proceed = false;
+      }
+      if (proceed)
+      {
+        nbUpdate = 0;
+        for (String[] onLineOfUpdate : recap)
+        {
+          try 
+          {
+            boolean restart = onLineOfUpdate[2].equals("true");
+            URL url = new URL(onLineOfUpdate[0]);
+            File localFile = new File(onLineOfUpdate[1]);
+            URLConnection conn = url.openConnection();
+            conn.connect(); // Triggers exception if necessary
+            if (conn != null)
+            {
+              if (restart)
+              {
+                restartRequired = true;
+                // Write XML Doc
+                XMLElement update = (XMLElement) updateDoc.createElement("update");
+                root.appendChild(update);
+                update.setAttribute("id", Integer.toString(nbUpdate++));
+                update.setAttribute("destination", onLineOfUpdate[1]);
+                String tempFile = "update" + File.separator + onLineOfUpdate[1].substring(onLineOfUpdate[1].lastIndexOf("/") + 1);
+                update.setAttribute("origin", tempFile);
+  
+                File updateDir = new File("update");
+                if (!updateDir.exists())
+                  updateDir.mkdirs();
+  
+                // Write the file to copy later
+                if (verbose) 
+                  System.out.println("\n*** Writing files to update [" + tempFile + "] ***\n");
+                InputStream urlIs = conn.getInputStream();
+                OutputStream os = new FileOutputStream(new File(tempFile));
+                Utilities.copy(urlIs, os);
+                os.close();
+              }
+              // 1 - Rename original file
+              try
+              {
+                if (localFile.exists())
+                {
+                  File backup = Utilities.findFileName(onLineOfUpdate[1]);
+                  if (verbose) System.out.println("Renaming " + onLineOfUpdate[1] + " (" + localFile.getName() + ") to " + backup.getName());
+                  Utilities.copy(new FileInputStream(localFile), new FileOutputStream(backup));
+                }
+              }
+              catch (Exception ex)
+              {
+                System.err.println("Renaming old files");
+                ex.printStackTrace();
+              }
+              // 2 - Download
+              /*
+               * This is now done on exit if restart is required
+               */
+              if (!restart)
+              {
+                try
+                {
+                  InputStream urlIs = conn.getInputStream();
+                  if (!localFile.exists())
+                  {
+                    File dir = new File(localFile.getAbsolutePath().substring(0, localFile.getAbsolutePath().lastIndexOf(File.separator)));
+                    if (!dir.exists())
+                      dir.mkdirs();
+                  }
+                  OutputStream os = new FileOutputStream(localFile);
+                  Utilities.copy(urlIs, os);
+                  os.close();
+                }
+                catch (Exception ioe)
+                {
+                  ioe.printStackTrace();
+                }
+              }
+            }
+            downloadMess += (onLineOfUpdate[1] + "\n");
+            updatedFiles.add(onLineOfUpdate[1]);
+          }
+          catch (Exception ex)
+          {
+            if (verbose) System.out.println("Not on line, or network not accessible");
+            online = false;
+        //  throw new RuntimeException("Cannot Connect to the Network", ex);
+            break;
+          }
         }
       }
       CoreContext.getInstance().fireNetworkOk(online);
