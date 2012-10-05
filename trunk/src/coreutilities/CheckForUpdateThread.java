@@ -194,11 +194,11 @@ public class CheckForUpdateThread extends Thread
             {
               nbUpdate++;
               System.out.println("Update available for " + pair[1] + (force?"":(", local:" + fileDate + " < remote:" + urlDate)));
-              recap.add(new String[] {pair[0],                   // URL 
-                                      pair[1],                   // File Name
-                                      Boolean.toString(restart), // Restart required
-                                      Long.toString(fileDate.getTime()),       // Current file date
-                                      Long.toString(urlDate.getTime()) });     // New file date
+              recap.add(new String[] { pair[0],                              // URL 
+                                       pair[1],                              // File Name
+                                       Boolean.toString(restart),            // Restart required
+                                       Long.toString(fileDate.getTime()),    // Current file date
+                                       Long.toString(urlDate.getTime()) });  // New file date
             }
           }
         }
