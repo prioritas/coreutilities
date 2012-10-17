@@ -132,7 +132,11 @@ public class JumboDisplay
     try 
     {
       String fontRes = RESOURCE_PATH + fontName;
-      InputStream fontDef = parent.getClass().getResourceAsStream(fontRes);
+      InputStream fontDef = null;
+      if (parent != null)
+        fontDef = parent.getClass().getResourceAsStream(fontRes);
+      else
+        fontDef = JumboDisplay.class.getResourceAsStream(fontRes);
       if (fontDef == null) 
       {
         throw new NullPointerException("Could not find font resource \"" + fontName +
