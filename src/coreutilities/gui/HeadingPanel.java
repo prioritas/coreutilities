@@ -18,11 +18,15 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 public class HeadingPanel 
      extends JPanel  
   implements MouseListener, MouseMotionListener
 {
+  @SuppressWarnings("compatibility:-6143076800472949894")
+  private final static long serialVersionUID = 1L;
+  
   public final static int ROSE                  = 0;
   public final static int ZERO_TO_360           = 1;
   public final static int MINUS_180_TO_PLUS_180 = 2;
@@ -30,6 +34,7 @@ public class HeadingPanel
   private int roseType = ROSE;
   
   private int hdg = 0;
+  private int prevHdg = 0;
   private boolean whiteOnBlack = true;
   private boolean draggable = false;
   private float roseWidth = 60;
@@ -253,10 +258,60 @@ public class HeadingPanel
     return roseStr;
   }
 
-  public void setHdg(int hdg)
+  private final static boolean smooth = true;
+  
+  public void setHdg(int heading)
   {
-    this.hdg = hdg;
-    repaint();
+    if (!smooth)
+    {
+      this.hdg = heading;
+      repaint();
+    }
+    else
+    {
+      this.hdg = heading;
+      int from = prevHdg; 
+      int to = hdg;
+      
+      // Manage the case 350-10
+      if (Math.abs(prevHdg - hdg) > 180)
+      {
+        if (Math.signum(Math.cos(Math.toRadians(prevHdg))) == Math.signum(Math.cos(Math.toRadians(hdg))))
+        {
+          if (from > to)
+            to += 360;
+          else
+            to -= 360;
+        }
+      }
+      
+      int sign = (from>to)?-1:1;
+      prevHdg = hdg;
+      // Smooth rotation
+      for (int h=from; (sign==1 && h<=to) || (sign==-1 && h>=to); h+=(1*sign))
+      {
+        final int _h = h;
+        try
+        {
+          // For a smooth move of the hand
+          SwingUtilities.invokeAndWait(new Runnable()
+            {
+              public void run()
+              {
+                int _heading = _h % 360;
+                while (_heading < 0) _heading += 360;
+                hdg = _heading;
+                repaint();
+              }
+            });
+        }
+        catch (Exception ex)
+        {
+          ex.printStackTrace();
+        }
+      }
+      
+    }
   }
 
   public int getHdg()
