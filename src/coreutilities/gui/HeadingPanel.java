@@ -42,6 +42,7 @@ public class HeadingPanel
   private boolean withCardinalPoints = true;
   
   private boolean glossy = false;
+  private boolean smooth = false;
   
   public HeadingPanel()
   {
@@ -258,8 +259,6 @@ public class HeadingPanel
     return roseStr;
   }
 
-  private final static boolean smooth = true;
-  
   public void setHdg(int heading)
   {
     if (!smooth)
@@ -424,5 +423,10 @@ public class HeadingPanel
 
   public void mouseExited(MouseEvent e)
   {
+  }
+
+  public void setSmooth(boolean smooth)
+  {
+    this.smooth = smooth;
   }
 }
