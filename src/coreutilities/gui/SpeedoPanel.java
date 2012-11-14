@@ -36,6 +36,11 @@ public class SpeedoPanel
   private double speed = 0D;
   private double prevSpeed = 0;
   
+  private boolean withMinMax = true;
+  
+  private double minimumSpeed = Double.MAX_VALUE;
+  private double maximumSpeed = -minimumSpeed;
+  
   private final static int DISPLAY_OFFSET = 5;
   
   private final static double INCREMENT_DEFAULT_VALUE = 0.25;
@@ -52,6 +57,22 @@ public class SpeedoPanel
     this.label = label;
   }
 
+  public void setWithMinMax(boolean withMinMax)
+  {
+    this.withMinMax = withMinMax;
+  }
+
+  public boolean isWithMinMax()
+  {
+    return withMinMax;
+  }
+
+  public void resetMinMax()
+  {
+    minimumSpeed = Double.MAX_VALUE;
+    maximumSpeed = -minimumSpeed;
+  }
+  
   public enum SpeedUnit
   {
     KNOT ("knots"),
@@ -159,6 +180,8 @@ public class SpeedoPanel
   public void setSpeed(final double d)
   {
     this.speed = d;
+    minimumSpeed = Math.min(minimumSpeed, d);
+    maximumSpeed = Math.max(maximumSpeed, d);
     double from = prevSpeed; 
     double to = d;
     
@@ -384,6 +407,38 @@ public class SpeedoPanel
         g2d.setFont(f);
       }
     }
+    if (withMinMax)
+    {
+      g2d.setColor(Color.red);
+      // Min
+      double angle = 270 - speedToAngle(this.minimumSpeed);
+      // Tip of the triangle
+      int toX   = center.x + (int)((radius * INTERNAL_RADIUS_COEFF * 0.8) * Math.sin(Math.toRadians(angle)));
+      int toY   = center.y + (int)((radius * INTERNAL_RADIUS_COEFF * 0.8) * Math.cos(Math.toRadians(angle)));
+      
+      int toX_1 = center.x + (int)(externalScaleRadius * Math.sin(Math.toRadians(angle + 2)));
+      int toY_1 = center.y + (int)(internalScaleRadius * Math.cos(Math.toRadians(angle + 2)));
+      
+      int toX_2 = center.x + (int)(externalScaleRadius * Math.sin(Math.toRadians(angle - 2)));
+      int toY_2 = center.y + (int)(internalScaleRadius * Math.cos(Math.toRadians(angle - 2)));
+      
+//    g2d.drawLine(center.x, center.y, toX, toY);
+      g2d.fillPolygon(new int[] {toX, toX_1, toX_2}, new int[] {toY, toY_1, toY_2}, 3);
+      
+      // Max
+      angle = 270 - speedToAngle(this.maximumSpeed);      
+      toX   = center.x + (int)((radius * INTERNAL_RADIUS_COEFF * 0.8) * Math.sin(Math.toRadians(angle)));
+      toY   = center.y + (int)((radius * INTERNAL_RADIUS_COEFF * 0.8) * Math.cos(Math.toRadians(angle)));
+      
+      toX_1 = center.x + (int)(externalScaleRadius * Math.sin(Math.toRadians(angle + 2)));
+      toY_1 = center.y + (int)(internalScaleRadius * Math.cos(Math.toRadians(angle + 2)));
+      
+      toX_2 = center.x + (int)(externalScaleRadius * Math.sin(Math.toRadians(angle - 2)));
+      toY_2 = center.y + (int)(internalScaleRadius * Math.cos(Math.toRadians(angle - 2)));
+      
+      //    g2d.drawLine(center.x, center.y, toX, toY);
+      g2d.fillPolygon(new int[] {toX, toX_1, toX_2}, new int[] {toY, toY_1, toY_2}, 3);
+    }
   }
   
   private double speedToAngle(double s)
@@ -425,10 +480,10 @@ public class SpeedoPanel
     {
       g2d.setFont(bgJumboFont.deriveFont((radius / 6f)));
       strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(this.label);
-      g2d.setColor(Color.gray);
+      g2d.setColor(Color.darkGray);
       g2d.drawString(this.label, center.x - (strWidth / 2), this.getHeight() - 2);
           
-      g2d.setFont(jumboFont.deriveFont((radius / 6f)));
+      g2d.setFont(jumboFont.deriveFont(Font.BOLD, (radius / 6f)));
       strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(this.label);
       g2d.setColor(Color.red);
       g2d.drawString(this.label, center.x - (strWidth / 2), this.getHeight() - 2);      
