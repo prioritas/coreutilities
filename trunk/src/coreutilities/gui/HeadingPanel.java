@@ -24,7 +24,7 @@ public class HeadingPanel
      extends JPanel  
   implements MouseListener, MouseMotionListener
 {
-  @SuppressWarnings("compatibility:-6143076800472949894")
+  @SuppressWarnings("compatibility:8059530136393454267")
   private final static long serialVersionUID = 1L;
   
   public final static int ROSE                  = 0;
