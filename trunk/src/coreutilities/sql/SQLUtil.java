@@ -45,10 +45,10 @@ public class SQLUtil
 //  int max            = 500;
 //  boolean persistent = true;
 //  boolean update     = false;
+    String connectString = "jdbc:hsqldb:file:" + dbLoc + File.separator +  dbName;
     try 
     {
       DriverManager.registerDriver(new org.hsqldb.jdbcDriver());
-      String connectString = "jdbc:hsqldb:file:" + dbLoc + File.separator +  dbName;
       System.out.println("Connecting to " + connectString);
 //    cConnection = DriverManager.getConnection("jdbc:HypersonicSQL:" + dbName, userName, password);
       cConnection = DriverManager.getConnection(connectString, userName, password);
@@ -60,6 +60,7 @@ public class SQLUtil
     } 
     catch(Exception e) 
     {
+      System.err.println("With [" + connectString + "] " + userName + "/" + password);
       System.err.println("hSQL Error: " + e.getMessage());
       throw e;
     }
