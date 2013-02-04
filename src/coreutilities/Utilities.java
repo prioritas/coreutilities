@@ -476,6 +476,11 @@ public class Utilities
     g2d.fillRoundRect(topLeft.x + offset, topLeft.y + offset, (width - (2 * offset)), (height - (2 * offset)), 2 * arcRadius, 2 * arcRadius); 
   }
   
+  public static boolean thisClassVerbose(Class c)
+  {
+    return (System.getProperty(c.getName() + ".verbose", "false").equals("true") || System.getProperty("all.verbose", "false").equals("true"));
+  }
+  
   static class ToolFileFilter extends FileFilter
   {
     private Hashtable<String, FileFilter> filters = null;
