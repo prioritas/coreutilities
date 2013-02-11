@@ -45,7 +45,10 @@ public class SQLUtil
 //  int max            = 500;
 //  boolean persistent = true;
 //  boolean update     = false;
-    String connectString = "jdbc:hsqldb:file:" + dbLoc + File.separator +  dbName;
+//  String dbPath = System.getProperty("user.dir") + dbLoc;
+//  dbPath = dbPath.replace(File.separatorChar, '/');
+    String connectString = "jdbc:hsqldb:file:" + (dbLoc.length() > 0?(dbLoc + File.separator):"") + dbName;
+//  String connectString = "jdbc:hsqldb:file:" + (dbPath.length() > 0?(dbPath + "/"):"") + dbName;
     try 
     {
       DriverManager.registerDriver(new org.hsqldb.jdbcDriver());
@@ -60,7 +63,7 @@ public class SQLUtil
     } 
     catch(Exception e) 
     {
-      System.err.println("With [" + connectString + "] " + userName + "/" + password);
+      System.err.println("With connect string [" + connectString + "] " + userName + "/" + password);
       System.err.println("hSQL Error: " + e.getMessage());
       throw e;
     }

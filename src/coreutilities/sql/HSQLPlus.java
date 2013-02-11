@@ -235,6 +235,7 @@ public class HSQLPlus
   
   private static void displayHelp()
   {
+    System.out.println("connect[;]");
     System.out.println("select ... ;");
     System.out.println("commit;");
     System.out.println("rollback;");
