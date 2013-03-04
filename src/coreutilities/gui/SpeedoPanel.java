@@ -23,7 +23,7 @@ import javax.swing.SwingUtilities;
 public class SpeedoPanel
   extends JPanel
 {
-  @SuppressWarnings("compatibility:2573216966058071487")
+  @SuppressWarnings("compatibility:-5990585320126728229")
   public final static long serialVersionUID = 1L;
   
   private final static boolean GLOSSY_DISPLAY = true;
@@ -51,6 +51,9 @@ public class SpeedoPanel
   private int bigTick = 5;        
 
   private double speedUnitRatio = (180D - (2 * DISPLAY_OFFSET)) / maxSpeed;
+
+  // The background font is transparent
+  private final Color bgColor = new Color((Color.gray.getRed()/255f), (Color.gray.getGreen()/255f), (Color.gray.getBlue()/255f), 0.5f);
 
   public void setLabel(String label)
   {
@@ -455,7 +458,7 @@ public class SpeedoPanel
     String value = DF.format(this.speed);
     g2d.setFont(bgJumboFont.deriveFont((radius / 3f)));
     int strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(value);
-    g2d.setColor(Color.gray);
+    g2d.setColor(bgColor);
     g2d.drawString(value, center.x - (strWidth / 2), center.y - (radius / 2));
         
     g2d.setFont(jumboFont.deriveFont(Font.BOLD, (radius / 3f)));
@@ -467,7 +470,7 @@ public class SpeedoPanel
     value = speedUnit.label();
     g2d.setFont(bgJumboFont.deriveFont((radius / 6f)));
     strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(value);
-    g2d.setColor(Color.gray);
+    g2d.setColor(bgColor);
     g2d.drawString(value, center.x - (strWidth / 2), center.y - (radius / 4));
         
     g2d.setFont(jumboFont.deriveFont((radius / 6f)));
@@ -480,7 +483,7 @@ public class SpeedoPanel
     {
       g2d.setFont(bgJumboFont.deriveFont((radius / 6f)));
       strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(this.label);
-      g2d.setColor(Color.darkGray);
+      g2d.setColor(bgColor);
       g2d.drawString(this.label, center.x - (strWidth / 2), this.getHeight() - 2);
           
       g2d.setFont(jumboFont.deriveFont(Font.BOLD, (radius / 6f)));
