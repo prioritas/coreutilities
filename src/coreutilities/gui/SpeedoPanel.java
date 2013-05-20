@@ -14,7 +14,12 @@ import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+
 import java.text.DecimalFormat;
+
+import java.text.NumberFormat;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -22,9 +27,12 @@ import javax.swing.SwingUtilities;
 
 public class SpeedoPanel
   extends JPanel
+  implements MouseMotionListener
 {
   @SuppressWarnings("compatibility:-5990585320126728229")
   public final static long serialVersionUID = 1L;
+  
+  private final static NumberFormat DF_2 = new DecimalFormat("##0.00");
   
   private final static boolean GLOSSY_DISPLAY = true;
   private final static boolean WITH_TEXTURE = false;
@@ -75,7 +83,46 @@ public class SpeedoPanel
     minimumSpeed = Double.MAX_VALUE;
     maximumSpeed = -minimumSpeed;
   }
-  
+
+  public void mouseDragged(MouseEvent e)
+  {
+  }
+
+  /* Display the current value at the mouse */
+  public void mouseMoved(MouseEvent e)
+  {
+    int x = e.getX();
+    int y = e.getY();
+    
+    System.out.println("X:" + x + ", Y:" + y);
+    
+    int centerX = this.getWidth() / 2;
+    int centerY = this.getHeight() - 20;
+    
+    double deltaX = x - centerX;
+    double deltaY = centerY - y;
+//  System.out.println("X:" + x + ", Y:" + y + ", deltaX:" + deltaX + ", deltaY:" + deltaY);
+    double angle = 90d;
+    String tt = "Yo!";
+    if (deltaX != 0)
+    {
+      double tan = deltaY / (double)Math.abs(deltaX);
+      System.out.println("Tan:" + tan);
+      angle = Math.toDegrees(Math.atan(tan));
+      if (deltaX > 0)
+        angle = 180d - angle;
+//    tt = "Mouse moved-> " + Integer.toString((int)angle) + "\272";
+    }    
+    if (angle > DISPLAY_OFFSET && angle < (180 - DISPLAY_OFFSET))
+    {
+      // DISPLAY_OFFSET = angle
+      double actualAngle = angle - DISPLAY_OFFSET;
+      double speed = (actualAngle / (180 - (2 * DISPLAY_OFFSET))) * maxSpeed;
+      tt = DF_2.format(speed) + " " + speedUnit.label();
+      this.setToolTipText(tt);
+    }
+  }
+
   public enum SpeedUnit
   {
     KNOT ("knots"),
@@ -83,7 +130,7 @@ public class SpeedoPanel
     MPH  ("mph"),
     MS   ("m/s");
 
-    @SuppressWarnings("compatibility:-2776162247172094666")
+    @SuppressWarnings("compatibility:-2165606895433629753")
     public final static long serialVersionUID = 1L;
 
     private final String label;
@@ -152,6 +199,7 @@ public class SpeedoPanel
   private void jbInit()
     throws Exception
   {
+    this.addMouseMotionListener(this);
     this.setLayout(null);
     if (!WITH_TEXTURE)
     {
