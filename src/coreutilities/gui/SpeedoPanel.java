@@ -12,10 +12,13 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.Stroke;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+
+import java.awt.geom.Arc2D;
 
 import java.text.DecimalFormat;
 
@@ -40,6 +43,8 @@ public class SpeedoPanel
   
   private final static double EXTERNAL_RADIUS_COEFF = 1.050;
   private final static double INTERNAL_RADIUS_COEFF = 1.025;
+  
+  private final static int[] BEAUFORT_SCALE = new int[] { 0, 1, 4, 7, 11, 16, 22, 28, 34, 41, 48, 56, 64 };
   
   private double speed = 0D;
   private double prevSpeed = 0;
@@ -141,12 +146,14 @@ public class SpeedoPanel
     
     public String label() { return this.label; }
   }
+  
   private SpeedUnit speedUnit = SpeedUnit.KNOT;
   
   private String label = "";
   
   private SpeedoPanel instance = this;
   private boolean smooth = true;
+  private boolean withBeaufortScale = false;
   
   private Font jumboFont = null;
   private Font bgJumboFont = null;
@@ -293,6 +300,11 @@ public class SpeedoPanel
       }
     }
   }
+  
+  public void withBeaufortScale(boolean b)
+  {
+    this.withBeaufortScale = b;
+  }
 
   private static void drawGlossyHalfCircularDisplay(Graphics2D g2d, 
                                                     Point center, 
@@ -377,6 +389,41 @@ public class SpeedoPanel
     
     g2d.setStroke(origStroke);
     drawGrid(g2d);
+    
+    if (this.withBeaufortScale)
+    {
+//    System.out.println("With Beaufort scale");
+      float alpha = 0.3f;
+      ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+
+      Stroke origStroke = ((Graphics2D)g).getStroke();
+      Stroke stroke =  new BasicStroke(10, 
+                                       BasicStroke.CAP_BUTT,
+                                       BasicStroke.JOIN_BEVEL);
+      ((Graphics2D)g).setStroke(stroke);  
+      int externalScaleRadius = (int)(radius * EXTERNAL_RADIUS_COEFF);
+      int internalScaleRadius = (int)(radius * INTERNAL_RADIUS_COEFF);
+      Color[] bColor = new Color[] { Color.black, Color.white };
+//    Color[] bColor = new Color[] { Color.green, Color.red };
+      for (int b=1; b<BEAUFORT_SCALE.length; b++)
+      {
+        double fromSpeed = speedToAngle(BEAUFORT_SCALE[b - 1]);
+        double toSpeed   = speedToAngle(BEAUFORT_SCALE[b]>maxSpeed?maxSpeed:BEAUFORT_SCALE[b]);
+        g2d.setColor(bColor[b % 2]);
+        Shape starBoardSide = new Arc2D.Float((center.x - externalScaleRadius), 
+                                              (center.y - externalScaleRadius),
+                                              (float)(2 * radius), 
+                                              (float)(2 * radius), 
+                                              (float)(180 - fromSpeed), 
+                                              (float)(fromSpeed - toSpeed),
+                                              Arc2D.OPEN);
+        ((Graphics2D) g).draw(starBoardSide);
+        if (BEAUFORT_SCALE[b] > maxSpeed)
+          break;
+      }
+      ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+      ((Graphics2D)g).setStroke(origStroke);  
+    }    
     drawHand(g2d);
   }
   
@@ -503,7 +550,8 @@ public class SpeedoPanel
   private void drawHand(Graphics2D g2d)
   {
     // Display value and unit in a Jumbo
-    String value = DF.format(this.speed);
+    String value = "";
+    try { value = DF.format(this.speed); } catch (NullPointerException npe) { npe.printStackTrace(); }
     g2d.setFont(bgJumboFont.deriveFont((radius / 3f)));
     int strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(value);
     g2d.setColor(bgColor);
