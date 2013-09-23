@@ -99,7 +99,7 @@ public class SpeedoPanel
     int x = e.getX();
     int y = e.getY();
     
-    System.out.println("X:" + x + ", Y:" + y);
+//  System.out.println("X:" + x + ", Y:" + y);
     
     int centerX = this.getWidth() / 2;
     int centerY = this.getHeight() - 20;
@@ -112,7 +112,7 @@ public class SpeedoPanel
     if (deltaX != 0)
     {
       double tan = deltaY / (double)Math.abs(deltaX);
-      System.out.println("Tan:" + tan);
+//    System.out.println("Tan:" + tan);
       angle = Math.toDegrees(Math.atan(tan));
       if (deltaX > 0)
         angle = 180d - angle;
