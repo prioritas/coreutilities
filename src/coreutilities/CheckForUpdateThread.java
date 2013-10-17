@@ -189,7 +189,7 @@ public class CheckForUpdateThread extends Thread
               }
             }
             
-            if (force || ( /*nbUpdate < 4 || */ /*(fileDate == null && urlDate != null) || */ 
+            if (force || ( /*nbUpdate < 4 || */ (fileDate == null && urlDate != null) || 
                                                (fileDate != null && urlDate != null && fileDate.getTime() < urlDate.getTime())))
             {
               nbUpdate++;
@@ -197,7 +197,7 @@ public class CheckForUpdateThread extends Thread
               recap.add(new String[] { pair[0],                              // URL 
                                        pair[1],                              // File Name
                                        Boolean.toString(restart),            // Restart required
-                                       Long.toString(fileDate.getTime()),    // Current file date
+                                       fileDate == null ? null : Long.toString(fileDate.getTime()),    // Current file date
                                        Long.toString(urlDate.getTime()) });  // New file date
             }
           }
@@ -220,13 +220,13 @@ public class CheckForUpdateThread extends Thread
       if (proceed)
       {
         nbUpdate = 0;
-        for (String[] onLineOfUpdate : recap)
+        for (String[] oneLineOfUpdate : recap)
         {
           try 
           {
-            boolean restart = onLineOfUpdate[2].equals("true");
-            URL url = new URL(onLineOfUpdate[0]);
-            File localFile = new File(onLineOfUpdate[1]);
+            boolean restart = oneLineOfUpdate[2].equals("true");
+            URL url = new URL(oneLineOfUpdate[0]);
+            File localFile = new File(oneLineOfUpdate[1]);
             URLConnection conn = url.openConnection();
             conn.connect(); // Triggers exception if necessary
             if (conn != null)
@@ -238,8 +238,8 @@ public class CheckForUpdateThread extends Thread
                 XMLElement update = (XMLElement) updateDoc.createElement("update");
                 root.appendChild(update);
                 update.setAttribute("id", Integer.toString(nbUpdate++));
-                update.setAttribute("destination", onLineOfUpdate[1]);
-                String tempFile = "update" + File.separator + onLineOfUpdate[1].substring(onLineOfUpdate[1].lastIndexOf("/") + 1);
+                update.setAttribute("destination", oneLineOfUpdate[1]);
+                String tempFile = "update" + File.separator + oneLineOfUpdate[1].substring(oneLineOfUpdate[1].lastIndexOf("/") + 1);
                 update.setAttribute("origin", tempFile);
   
                 File updateDir = new File("update");
@@ -259,8 +259,8 @@ public class CheckForUpdateThread extends Thread
               {
                 if (localFile.exists())
                 {
-                  File backup = Utilities.findFileName(onLineOfUpdate[1]);
-                  if (verbose) System.out.println("Renaming " + onLineOfUpdate[1] + " (" + localFile.getName() + ") to " + backup.getName());
+                  File backup = Utilities.findFileName(oneLineOfUpdate[1]);
+                  if (verbose) System.out.println("Renaming " + oneLineOfUpdate[1] + " (" + localFile.getName() + ") to " + backup.getName());
                   Utilities.copy(new FileInputStream(localFile), new FileOutputStream(backup));
                 }
               }
@@ -273,7 +273,7 @@ public class CheckForUpdateThread extends Thread
               /*
                * This is now done on exit if restart is required
                */
-              if (!restart)
+              if (!restart || !localFile.exists())
               {
                 try
                 {
@@ -294,8 +294,8 @@ public class CheckForUpdateThread extends Thread
                 }
               }
             }
-            downloadMess += (onLineOfUpdate[1] + "\n");
-            updatedFiles.add(onLineOfUpdate[1]);
+            downloadMess += (oneLineOfUpdate[1] + "\n");
+            updatedFiles.add(oneLineOfUpdate[1]);
           }
           catch (Exception ex)
           {

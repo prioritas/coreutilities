@@ -130,7 +130,7 @@ public class UpdateTablePanel
           newData[i][j] = data[i][j];
       }
       newData[len][0] = resource;
-      newData[len][1] = new Date(Long.parseLong(current)).toString();
+      newData[len][1] = (current == null) ? " - " : new Date(Long.parseLong(current)).toString();
       newData[len][2] = new Date(Long.parseLong(newDate)).toString();
       newData[len][3] = new Boolean(restart);
       data = newData;
