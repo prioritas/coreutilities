@@ -337,6 +337,8 @@ public class CheckForUpdateThread extends Thread
         }
         CoreContext.getInstance().fireUpdateCompleted(updatedFiles);
       }
+      else
+        CoreContext.getInstance().fireUpdateCompleted(null);
     }
   }
 }
