@@ -277,6 +277,8 @@ public class CheckForUpdateThread extends Thread
               {
                 try
                 {
+                  conn = url.openConnection(); // Reset the connection
+                  conn.connect(); // Triggers exception if necessary
                   InputStream urlIs = conn.getInputStream();
                   if (!localFile.exists())
                   {
