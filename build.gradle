@@ -49,3 +49,19 @@ task tellMeProxy (description: "Spits out the proxy settings.") << {
 }
 
 compileJava.dependsOn(tellMeProxy)
+
+/****
+install.dependsOn(build)
+build.doLast {
+  println "Now uploading archive."
+  tasks.install.execute()
+}
+
+install {
+  repositories {
+    mavenDeployer {
+      repository(url: "file:///" + userprofile + "/.m2/repository")
+    }
+  }
+}
+******/
