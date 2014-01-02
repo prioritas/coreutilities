@@ -214,8 +214,10 @@ public class Utilities
   
   public static void main(String[] args) throws Exception
   {
-    System.setProperty("os.name", "Mac OS X");
-    showFileSystem(System.getProperty("user.dir"));
+//  System.setProperty("os.name", "Mac OS X");
+//  showFileSystem(System.getProperty("user.dir"));
+    long elapsed = 123456L; // 231234567890L;
+    System.out.println("Readable time (" + elapsed + ") : " + readableTime(elapsed));
   }
   
   public static int sign(double d)
@@ -481,6 +483,49 @@ public class Utilities
     return (System.getProperty(c.getName() + ".verbose", "false").equals("true") || System.getProperty("all.verbose", "false").equals("true"));
   }
   
+  public static String readableTime(long elapsed)
+  {
+    long amount = elapsed;
+    String str = "";
+    final long SECOND = 1000L;
+    final long MINUTE = 60 * SECOND;
+    final long HOUR   = 60 * MINUTE;
+    final long DAY    = 24 * HOUR;
+    final long WEEK   =  7 * DAY;
+     
+    if (amount >= WEEK)
+    {
+      int week = (int)(amount / WEEK);
+      str += (week + " week(s) ");
+      amount -= (week * WEEK);
+    }
+    if (amount >= DAY || str.length() > 0)
+    {
+      int day = (int)(amount / DAY);
+      str += (day + " day(s) ");
+      amount -= (day * DAY);
+    }
+    if (amount >= HOUR || str.length() > 0)
+    {
+      int hour = (int)(amount / HOUR);
+      str += (hour + " hour(s) ");
+      amount -= (hour * HOUR);
+    }
+    if (amount >= MINUTE || str.length() > 0)
+    {
+      int minute = (int)(amount / MINUTE);
+      str += (minute + " minute(s) ");
+      amount -= (minute * MINUTE);
+    }
+//  if (amount > SECOND || str.length() > 0)
+    {
+      int second = (int)(amount / SECOND);
+      str += (second + "." + (amount % 1000) + " second(s) ");
+      amount -= (second * SECOND);
+    }
+    return str;
+  }
+  
   static class ToolFileFilter extends FileFilter
   {
     private Hashtable<String, FileFilter> filters = null;
@@ -521,17 +566,17 @@ public class Utilities
 
     public boolean accept(File f)
     {
-      if(f != null)
+      if (f != null)
       {
         if(f.isDirectory())
         {
           return true;
         }
         String extension = getExtension(f);
-        if(extension != null && filters.get(getExtension(f)) != null)
+        if (extension != null && filters.get(getExtension(f)) != null)
         {
           return true;
-        };
+        }
       }
       return false;
     }
@@ -542,17 +587,17 @@ public class Utilities
       {
         String filename = f.getName();
         int i = filename.lastIndexOf('.');
-        if(i>0 && i<filename.length()-1)
+        if (i>0 && i<filename.length()-1)
         {
           return filename.substring(i+1).toLowerCase();
-        };
+        }
       }
       return null;
     }
 
     public void addExtension(String extension)
     {
-      if(filters == null)
+      if (filters == null)
       {
         filters = new Hashtable<String, FileFilter>(5);
       }
