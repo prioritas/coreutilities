@@ -27,7 +27,6 @@ import java.text.NumberFormat;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-
 public class SpeedoPanel
   extends JPanel
   implements MouseMotionListener
@@ -68,6 +67,20 @@ public class SpeedoPanel
   // The background font is transparent
   private final Color bgColor = new Color((Color.gray.getRed()/255f), (Color.gray.getGreen()/255f), (Color.gray.getBlue()/255f), 0.5f);
 
+  public static int getBeaufort(double d)
+  {
+    int b = 0;
+    for (int i=0; i<BEAUFORT_SCALE.length; i++)
+    {
+      if (d < BEAUFORT_SCALE[i])
+      {
+        b = i - 1;
+        break;
+      }
+    }
+    return b;
+  }
+
   public void setLabel(String label)
   {
     this.label = label;
@@ -87,6 +100,12 @@ public class SpeedoPanel
   {
     minimumSpeed = Double.MAX_VALUE;
     maximumSpeed = -minimumSpeed;
+  }
+
+  public void setMinMax(double min, double max)
+  {
+    minimumSpeed = min;
+    maximumSpeed = max;
   }
 
   public void mouseDragged(MouseEvent e)
@@ -124,6 +143,8 @@ public class SpeedoPanel
       double actualAngle = angle - DISPLAY_OFFSET;
       double speed = (actualAngle / (180 - (2 * DISPLAY_OFFSET))) * maxSpeed;
       tt = DF_2.format(speed) + " " + speedUnit.label();
+      if (withBeaufortScale)
+        tt = "<html>" + tt + "<br>F " + Integer.toString(getBeaufort(speed)) + "</html>";
       this.setToolTipText(tt);
     }
   }
