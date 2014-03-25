@@ -27,7 +27,7 @@ import java.text.NumberFormat;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-public class SpeedoPanel
+public class PartCircularDisplay
   extends JPanel
   implements MouseMotionListener
 {
@@ -40,29 +40,32 @@ public class SpeedoPanel
   private final static boolean WITH_TEXTURE = false;
   private final static boolean WITH_BEVEL_SHADE = true;
   
-  private final static double EXTERNAL_RADIUS_COEFF = 1.050;
-  private final static double INTERNAL_RADIUS_COEFF = 1.025;
+  private final static double EXTERNAL_RADIUS_COEFF = 1.1; // 1.050;
+  private final static double INTERNAL_RADIUS_COEFF = 1.05; // 1.025;
   
   private final static int[] BEAUFORT_SCALE = new int[] { 0, 1, 4, 7, 11, 16, 22, 28, 34, 41, 48, 56, 64 };
   
   private double speed = 0D;
   private double prevSpeed = 0;
+  private int angleOverlap = 0;
+  private double minValue = 0;
   
   private boolean withMinMax = true;
   
   private double minimumSpeed = Double.MAX_VALUE;
   private double maximumSpeed = -minimumSpeed;
   
-  private final static int DISPLAY_OFFSET = 5;
+  private static int displayOffset = 5;
   
   private final static double INCREMENT_DEFAULT_VALUE = 0.25;
   private final static int TICK_DEFAULT_VALUE = 5;
+  private final static int DEFAULT_ANGLE_OVERLAP = 0;
   
   private double maxSpeed = 50D;
   private double increment = 0.25;
   private int bigTick = 5;        
 
-  private double speedUnitRatio = (180D - (2 * DISPLAY_OFFSET)) / maxSpeed;
+  private double speedUnitRatio = (180D - (2 * displayOffset)) / maxSpeed;
 
   // The background font is transparent
   private final Color bgColor = new Color((Color.gray.getRed()/255f), (Color.gray.getGreen()/255f), (Color.gray.getBlue()/255f), 0.5f);
@@ -137,42 +140,23 @@ public class SpeedoPanel
         angle = 180d - angle;
 //    tt = "Mouse moved-> " + Integer.toString((int)angle) + "\272";
     }    
-    if (angle > DISPLAY_OFFSET && angle < (180 - DISPLAY_OFFSET))
-    {
-      // DISPLAY_OFFSET = angle
-      double actualAngle = angle - DISPLAY_OFFSET;
-      double speed = (actualAngle / (180 - (2 * DISPLAY_OFFSET))) * maxSpeed;
-      tt = DF_2.format(speed) + " " + speedUnit.label();
-      if (withBeaufortScale)
-        tt = "<html>" + tt + "<br>F " + Integer.toString(getBeaufort(speed)) + "</html>";
-      this.setToolTipText(tt);
-    }
+//    if (angle > displayOffset && angle < (180 - displayOffset))
+//    {
+//      // DISPLAY_OFFSET = angle
+//      double actualAngle = angle - displayOffset;
+//      double speed = (actualAngle / (180 - (2 * displayOffset))) * maxSpeed;
+//      tt = DF_2.format(speed) + " " + speedUnit;
+//      if (withBeaufortScale)
+//        tt = "<html>" + tt + "<br>F " + Integer.toString(getBeaufort(speed)) + "</html>";
+//      this.setToolTipText(tt);
+//    }
   }
 
-  public enum SpeedUnit
-  {
-    KNOT ("knots"),
-    KMH  ("km/h"),
-    MPH  ("mph"),
-    MS   ("m/s");
-
-    @SuppressWarnings("compatibility:-2165606895433629753")
-    public final static long serialVersionUID = 1L;
-
-    private final String label;
-    SpeedUnit(String label)
-    {
-      this.label = label;
-    }
-    
-    public String label() { return this.label; }
-  }
-  
-  private SpeedUnit speedUnit = SpeedUnit.KNOT;
+  private String speedUnit = "hPa";
   
   private String label = "";
   
-  private SpeedoPanel instance = this;
+  private PartCircularDisplay instance = this;
   private boolean smooth = true;
   private boolean withBeaufortScale = false;
   
@@ -186,34 +170,40 @@ public class SpeedoPanel
   protected int radius = 0;
   protected Point center = null;
   
-  public SpeedoPanel(double s)
+  public PartCircularDisplay(double s)
   {
     this(s, INCREMENT_DEFAULT_VALUE, TICK_DEFAULT_VALUE);
   }
   
-  public SpeedoPanel(double s, boolean smooth)
+  public PartCircularDisplay(double s, boolean smooth)
   {
     this(s, INCREMENT_DEFAULT_VALUE, TICK_DEFAULT_VALUE, smooth);
   }
   
-  public SpeedoPanel(double s, double inc, boolean smooth)
+  public PartCircularDisplay(double s, double inc, boolean smooth)
   {
     this(s, inc, TICK_DEFAULT_VALUE, smooth);
   }
   
-  public SpeedoPanel(double s, double inc, int tick)
+  public PartCircularDisplay(double s, double inc, int tick)
   {
     this(s, inc, tick, true);
   }
   
-  public SpeedoPanel(double s, double inc, int tick, boolean smooth)
+  public PartCircularDisplay(double s, double inc, int tick, boolean smooth)
+  {
+    this(s, inc, tick, smooth, DEFAULT_ANGLE_OVERLAP, 0);
+  }
+  public PartCircularDisplay(double s, double inc, int tick, boolean smooth, int overlap, double minVal)
   {
     this.maxSpeed = s;
     this.increment = inc;
     this.bigTick = tick;
     this.smooth = smooth;
+    this.angleOverlap = overlap;
+    this.minValue = minVal;
     
-    speedUnitRatio = (180D - (2 * DISPLAY_OFFSET)) / maxSpeed;
+    speedUnitRatio = (180D - (2 * (displayOffset - angleOverlap))) / (maxSpeed - minValue);
     try
     {
       jbInit();
@@ -247,13 +237,10 @@ public class SpeedoPanel
 //  jumboFont = JumboDisplay.tryToLoadFont("AUDIMSCB.TTF", this);
     jumboFont   = JumboDisplay.tryToLoadFont("TRANA___.TTF", this);
     bgJumboFont = JumboDisplay.tryToLoadFont("TRANGA__.TTF", this);
+    
+    speedUnitRatio = ((180D + (2 * angleOverlap)) - (2 * displayOffset)) / (maxSpeed - minValue);
   }
   
-  public void setSpeedUnit(SpeedoPanel.SpeedUnit speedUnit)
-  {
-    this.speedUnit = speedUnit;
-  }
-
   private double damping = 0.5;
   
   public void setSpeed(final double d)
@@ -327,19 +314,13 @@ public class SpeedoPanel
     this.withBeaufortScale = b;
   }
 
-  private static void drawGlossyHalfCircularDisplay(Graphics2D g2d, 
-                                                    Point center, 
-                                                    int radius, 
-                                                    Color lightColor, 
-                                                    Color darkColor, 
-                                                    float transparency)
+  private static void drawGlossyCircularDisplay(Graphics2D g2d, Point center, int radius, Color lightColor, Color darkColor, float transparency)
   {
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
     g2d.setPaint(null);
 
     g2d.setColor(darkColor);
-//  g2d.fillOval(center.x - radius, center.y - radius, 2 * radius, 2 * radius);
-    g2d.fillArc(center.x - radius, center.y - radius, 2 * radius, 2 * radius, 0, 180);
+    g2d.fillOval(center.x - radius, center.y - radius, 2 * radius, 2 * radius);
 
     Point gradientOrigin = new Point(center.x - radius,
                                      center.y - radius);
@@ -350,16 +331,10 @@ public class SpeedoPanel
                                                gradientOrigin.y + (2 * radius / 3), 
                                                darkColor); // vertical, light on top
     g2d.setPaint(gradient);
-//  g2d.fillOval((int)(center.x - (radius * 0.90)), 
-//               (int)(center.y - (radius * 0.95)), 
-//               (int)(2 * radius * 0.9), 
-//               (int)(2 * radius * 0.95));
-    g2d.fillArc((int)(center.x - (radius * 0.90)), 
-                (int)(center.y - (radius * 0.95)), 
-                (int)(2 * radius * 0.9), 
-                (int)(2 * radius * 0.95),
-                0, 
-                180);
+    g2d.fillOval((int)(center.x - (radius * 0.90)), 
+                 (int)(center.y - (radius * 0.95)), 
+                 (int)(2 * radius * 0.9), 
+                 (int)(2 * radius * 0.95));
   }
 
   @Override
@@ -367,11 +342,11 @@ public class SpeedoPanel
   {
     super.paintComponent(g);
 
-    radius = Math.min(this.getWidth() / 2, this.getHeight());
-    center = new Point(this.getWidth() / 2, this.getHeight() - 20);
+    radius = Math.min(this.getWidth() / 2, this.getHeight() / 2);
+    center = new Point(this.getWidth() / 2, this.getHeight() / 2);
     
     // For the scale and shadow:
-    radius *= 0.8; // 0.9;
+    radius *= 0.75; // 0.9;
     
 //  g.setColor(Color.lightGray);
 
@@ -405,7 +380,7 @@ public class SpeedoPanel
 //    int extRadius = (int)(radius * EXTERNAL_RADIUS_COEFF) + 15; // 10 is the font size, for the months (in case of map)
 //    g2d.fillOval(center.x - extRadius, center.y - extRadius, 2 * extRadius, 2 * extRadius);      
       // Glossy Display
-      drawGlossyHalfCircularDisplay(g2d, center, radius, Color.lightGray, Color.black, 1f);
+      drawGlossyCircularDisplay(g2d, center, radius, Color.lightGray, Color.black, 1f);
     }
     
     g2d.setStroke(origStroke);
@@ -477,12 +452,6 @@ public class SpeedoPanel
     g2d.setStroke(thick);
     // Center
     g2d.fillOval(center.x - 2, center.y - 2, 4, 4);
-    // Equateur celeste
-//  g2d.drawOval(center.x - (radius / 2), center.y - (radius / 2), radius, radius);
-    // Pole abaissé
-//  g2d.drawOval(center.x - radius, center.y - radius, 2 * radius, 2 * radius);
-    // Horizontal axis
-//  g2d.drawLine(0, center.y, this.getWidth(), center.y);
     
     // Scale, on the edge
     g2d.setStroke(origStroke);
@@ -496,14 +465,15 @@ public class SpeedoPanel
                 center.y - externalScaleRadius, 
                 2 * externalScaleRadius, 
                 2 * externalScaleRadius,
-                0,
-                180);
+                0 - angleOverlap,
+                180 + angleOverlap);
 //  for (int d=-90; d<=90; d+=1)
-    for (double s=0; s<=maxSpeed; s+=increment) 
+    g2d.setColor(Color.lightGray);
+    for (double s=minValue; s<=maxSpeed; s+=increment) 
     {
       double d = speedToAngle(s) - 90;
       int scaleRadius = internalScaleRadius;
-      if (s % 1 == 0)
+      if (s % bigTick == 0)
         scaleRadius = externalScaleRadius;
       int fromX = center.x + (int)(radius * Math.sin(Math.toRadians(d - 180)));
       int fromY = center.y + (int)(radius * Math.cos(Math.toRadians(d - 180)));
@@ -514,7 +484,7 @@ public class SpeedoPanel
       {
         Font f = g2d.getFont();
         float fontFactor = Math.min(this.getWidth(), this.getHeight()) / 20f;
-        g2d.setFont(f.deriveFont(Font.BOLD, 2 * fontFactor));
+        g2d.setFont(f.deriveFont(Font.BOLD, 2 * fontFactor * 0.8f));
         String str = Integer.toString((int)s);
         int strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(str);
         Color c = g2d.getColor();
@@ -562,8 +532,8 @@ public class SpeedoPanel
   
   private double speedToAngle(double s)
   {
-    double angle = s * speedUnitRatio;
-    return angle + DISPLAY_OFFSET;
+    double angle = (s - minValue) * speedUnitRatio;
+    return angle + displayOffset - angleOverlap;
   }
   
   private final static DecimalFormat DF = new DecimalFormat("00.0");
@@ -583,7 +553,7 @@ public class SpeedoPanel
     g2d.drawString(value, center.x - (strWidth / 2), center.y - (radius / 2));
 
     // Unit    
-    value = speedUnit.label();
+    value = speedUnit;
     g2d.setFont(bgJumboFont.deriveFont((radius / 6f)));
     strWidth  = g2d.getFontMetrics(g2d.getFont()).stringWidth(value);
     g2d.setColor(bgColor);
