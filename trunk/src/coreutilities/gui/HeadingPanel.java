@@ -88,8 +88,32 @@ public class HeadingPanel
     repaint();
   }
 
-  private static final boolean withColorGradient = true;
+  private boolean withColorGradient = true;
+  private boolean withCustomColors  = false;
   
+  private Color bgColor = null,
+                tickColor = null;
+
+  public void setBgColor(Color bgColor)
+  {
+    this.bgColor = bgColor;
+  }
+
+  public void setTickColor(Color tickColor)
+  {
+    this.tickColor = tickColor;
+  }
+
+  public void setWithCustomColors(boolean withCustomColors)
+  {
+    this.withCustomColors = withCustomColors;
+  }
+
+  public void setWithColorGradient(boolean withColorGradient)
+  {
+    this.withColorGradient = withColorGradient;
+  }
+
   public void paintComponent(Graphics gr)
   {    
     ((Graphics2D)gr).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -129,12 +153,18 @@ public class HeadingPanel
       }
       else
       {
-        gr.setColor(whiteOnBlack?Color.black:Color.white);
+        if (!withCustomColors)
+          gr.setColor(whiteOnBlack?Color.black:Color.white);
+        else
+          gr.setColor(bgColor);
       }
       gr.fillRect(0, 0, w, h);
     }
     // Width: 30 on each side = 60 (default)
-    gr.setColor(whiteOnBlack?Color.white:Color.black);
+    if (!withCustomColors)
+      gr.setColor(whiteOnBlack?Color.white:Color.black);
+    else
+      gr.setColor(tickColor);
     float oneDegree = (float)w / roseWidth; // 30 degrees each side
     // One graduation every 1 & 5, one label every 15
     for (int rose=hdg-(int)(roseWidth / 2f); rose<=hdg+(int)(roseWidth / 2f); rose++)
