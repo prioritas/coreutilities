@@ -31,7 +31,25 @@ public class JumboDisplay
   private JLabel dataNameLabel = new JLabel();
   private JLabel dataValueLabel = new JLabel();
   private Color displayColor = Color.green;
-  
+  private Color gridColor = Color.lightGray;
+  private boolean withGlossyBG = true;
+
+  public void setWithGlossyBG(boolean withGlossyBG)
+  {
+    this.withGlossyBG = withGlossyBG;
+  }
+  private Color customBGColor = null;
+
+  public void setGridColor(Color gridColor)
+  {
+    this.gridColor = gridColor;
+  }
+
+  public void setCustomBGColor(Color customBGColor)
+  {
+    this.customBGColor = customBGColor;
+  }
+
   private String toolTipText = null;
   
   private String origName = "BSP", 
@@ -198,16 +216,25 @@ public class JumboDisplay
       ((Graphics2D)g).setPaint(gradient);
       g.fillRect(0, 0, this.getWidth(), this.getHeight());
     }
-    if (true)
+    if (withGlossyBG)
       drawGlossyRectangularDisplay((Graphics2D)g, 
                                    new Point(0, 0), 
                                    new Point(this.getWidth(), this.getHeight()), 
                                    Color.gray, 
                                    Color.black, 
                                    1f);
+    else
+    {
+      // Use customBGColor
+      drawFlatRectangularDisplay((Graphics2D)g, 
+                                  new Point(0, 0), 
+                                  new Point(this.getWidth(), this.getHeight()), 
+                                  customBGColor, 
+                                  1f);
+    }
   }
 
-  private static void drawGlossyRectangularDisplay(Graphics2D g2d, Point topLeft, Point bottomRight, Color lightColor, Color darkColor, float transparency)
+  private void drawGlossyRectangularDisplay(Graphics2D g2d, Point topLeft, Point bottomRight, Color lightColor, Color darkColor, float transparency)
   {
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
     g2d.setPaint(null);
@@ -232,7 +259,7 @@ public class JumboDisplay
     int arcRadius = 5;
     g2d.fillRoundRect(topLeft.x + offset, topLeft.y + offset, (width - (2 * offset)), (height - (2 * offset)), 2 * arcRadius, 2 * arcRadius);
     
-    g2d.setColor(Color.lightGray);
+    g2d.setColor(gridColor);
     Composite comp = g2d.getComposite();
     g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
     for (int n=1; n<4; n++)
@@ -242,4 +269,28 @@ public class JumboDisplay
     
     g2d.setComposite(comp);
   }
+  
+  private void drawFlatRectangularDisplay(Graphics2D g2d, Point topLeft, Point bottomRight, Color bgColor, float transparency)
+  {
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+    g2d.setPaint(null);
+
+    g2d.setColor(bgColor);
+    
+    int width  = bottomRight.x - topLeft.x;
+    int height = bottomRight.y - topLeft.y;
+
+    g2d.fillRoundRect(topLeft.x , topLeft.y, width, height, 10, 10);
+
+    g2d.setColor(gridColor);
+    Composite comp = g2d.getComposite();
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+    for (int n=1; n<4; n++)
+      g2d.drawLine(0, n * (height / 4), width, n * (height / 4));
+    for (int n=1; n<6; n++)
+      g2d.drawLine(n * (width / 6), 0, n * (width / 6), height);
+    
+    g2d.setComposite(comp);
+  }
+
 }
