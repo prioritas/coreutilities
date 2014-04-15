@@ -44,6 +44,13 @@ public class HeadingPanel
   private boolean glossy = false;
   private boolean smooth = false;
   
+  private String ttPrefix = "";
+
+  public void setTtPrefix(String ttPrefix)
+  {
+    this.ttPrefix = ttPrefix;
+  }
+
   public HeadingPanel()
   {
     this(ROSE);
@@ -207,12 +214,12 @@ public class HeadingPanel
     gr.drawLine(w/2, 0, w/2, h);
     //
     while (hdg < 0) hdg += 360;
-    this.setToolTipText(Integer.toString(hdg % 360) + "\272");
+    this.setToolTipText(ttPrefix + Integer.toString(hdg % 360) + "\272");
   }
 
   private String getRoseStr(int rtd)
   {
-    String roseStr = "";
+    String roseStr = Integer.toString(rtd);
     if (rtd == 0)
     {
       if (roseType == ROSE)
