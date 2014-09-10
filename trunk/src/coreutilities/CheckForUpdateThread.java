@@ -289,6 +289,14 @@ public class CheckForUpdateThread extends Thread
                   OutputStream os = new FileOutputStream(localFile);
                   Utilities.copy(urlIs, os);
                   os.close();
+                  // Touch on Linux & similar
+                  String opsys = System.getProperty("os.name");
+                  if (opsys.indexOf("Linux") > -1 || opsys.indexOf("Mac") > -1) 
+                  {
+                    String fName = localFile.getAbsolutePath();
+                    System.out.println("Touching " + fName);
+                    Runtime.getRuntime().exec("touch " + fName);
+                  }
                 }
                 catch (Exception ioe)
                 {
