@@ -10,6 +10,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
 public class Utilities
@@ -152,9 +157,38 @@ public class Utilities
   public static void openInBrowser(String page) throws Exception
   {
     URI uri = new URI(page);
-//  System.out.println("Opening in browser:[" + uri.toString() + "]");
-    Desktop.getDesktop().browse(uri);
-    
+    try
+    {      
+  //  System.out.println("Opening in browser:[" + uri.toString() + "]");
+      Desktop.getDesktop().browse(uri);
+    }
+    catch (Exception ex) // UnsupportedOperationException ex)
+    {
+      String mess = ex.getMessage();
+      mess += ("\n\nUnsupported operation on your system. URL [" + uri.toString() + "] is in the clipboard.\nOpen your browser manually, and paste it in there (Ctrl+V).");
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      String path = uri.toString();
+      try 
+      {
+        File f = new File(page);
+        if (f.exists())
+        {
+          path = f.getAbsolutePath();
+          if (File.separatorChar != '/')
+            path = path.replace(File.separatorChar, '/');
+          if (!path.startsWith("/"))
+            path = "/" + path;
+          path =  "file:" + path;
+        }
+      }
+      catch (Exception ex2)
+      {
+        ex2.printStackTrace();
+      }
+      StringSelection stringSelection = new StringSelection(path);
+      clipboard.setContents(stringSelection, null);          
+      JOptionPane.showMessageDialog(null, mess, "Showing in Browser", JOptionPane.ERROR_MESSAGE);      
+    }
 //    String os = System.getProperty("os.name");
 //    if (os.indexOf("Windows") > -1)
 //    {
