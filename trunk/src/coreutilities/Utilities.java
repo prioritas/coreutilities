@@ -519,6 +519,11 @@ public class Utilities
   
   public static String readableTime(long elapsed)
   {
+    return readableTime(elapsed, false);
+  }
+  
+  public static String readableTime(long elapsed, boolean small)
+  {
     long amount = elapsed;
     String str = "";
     final long SECOND = 1000L;
@@ -530,31 +535,31 @@ public class Utilities
     if (amount >= WEEK)
     {
       int week = (int)(amount / WEEK);
-      str += (week + " week(s) ");
+      str += (week + (small?" w ":" week(s) "));
       amount -= (week * WEEK);
     }
     if (amount >= DAY || str.length() > 0)
     {
       int day = (int)(amount / DAY);
-      str += (day + " day(s) ");
+      str += (day + (small?" d ":" day(s) "));
       amount -= (day * DAY);
     }
     if (amount >= HOUR || str.length() > 0)
     {
       int hour = (int)(amount / HOUR);
-      str += (hour + " hour(s) ");
+      str += (hour + (small?" h ":" hour(s) "));
       amount -= (hour * HOUR);
     }
     if (amount >= MINUTE || str.length() > 0)
     {
       int minute = (int)(amount / MINUTE);
-      str += (minute + " minute(s) ");
+      str += (minute + (small?" m ":" minute(s) "));
       amount -= (minute * MINUTE);
     }
 //  if (amount > SECOND || str.length() > 0)
     {
       int second = (int)(amount / SECOND);
-      str += (second + "." + (amount % 1000) + " second(s) ");
+      str += (second + "." + (amount % 1000) + (small?" s ":" second(s) "));
       amount -= (second * SECOND);
     }
     return str;
