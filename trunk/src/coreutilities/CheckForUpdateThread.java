@@ -7,6 +7,7 @@ import coreutilities.gui.UpdateTablePanel;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -23,6 +24,9 @@ import java.util.List;
 
 import java.util.Locale;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.swing.JOptionPane;
 
 import oracle.xml.parser.v2.DOMParser;
@@ -35,6 +39,9 @@ import org.w3c.dom.NodeList;
 
 public class CheckForUpdateThread extends Thread
 {
+  private final static String PATTERN = "<IMG SRC.*ALT=\"\\[(.{3})\\]\".*<A HREF=\\\"(.*)\\\".*>(.*)</A>";
+  private static Pattern pattern = Pattern.compile(PATTERN);
+  
   private final String softid;
   private DOMParser parser = null;
   private String structureFileName = null;
@@ -102,7 +109,16 @@ public class CheckForUpdateThread extends Thread
         String file = data.getAttribute("file");
         String restart = data.getAttribute("require-restart");
         if (verbose) System.out.println("Checking " + file);
-        resource.add(new String[] { url, file, restart });
+        if (url.endsWith("*"))
+        {
+          String fromUrl = url;
+          while (fromUrl.endsWith("*"))
+            fromUrl = fromUrl.substring(0, fromUrl.length() - 1);
+          String destination = file;
+          CheckForUpdateThread.drillDown(fromUrl, destination, resource, restart);
+        }
+        else
+          resource.add(new String[] { url, file, restart });
       }
     }
     catch (Exception ex)
@@ -273,7 +289,7 @@ public class CheckForUpdateThread extends Thread
               /*
                * This is now done on exit if restart is required
                */
-              if (!restart || !localFile.exists())
+              if (true || !restart || !localFile.exists())
               {
                 try
                 {
@@ -291,12 +307,15 @@ public class CheckForUpdateThread extends Thread
                   os.close();
                   // Touch on Linux & similar
                   String opsys = System.getProperty("os.name");
+              //  System.out.println("Patching on OS [" + opsys + "]");
                   if (opsys.indexOf("Linux") > -1 || opsys.indexOf("Mac") > -1) 
                   {
                     String fName = localFile.getAbsolutePath();
-                    System.out.println("Touching " + fName);
+                    System.out.println("... Touching " + fName);
                     Runtime.getRuntime().exec("touch " + fName);
                   }
+              //  else
+              //    System.out.println("... NO touching.");
                 }
                 catch (Exception ioe)
                 {
@@ -351,5 +370,113 @@ public class CheckForUpdateThread extends Thread
         CoreContext.getInstance().fireUpdateCompleted(null);
     }
   }
+
+  private final static void drillDown(String from, String localRoot, List<String[]> resource, String restart) throws Exception
+  {
+    String content = getContent(from);
+  //  System.out.println(content);
+    String[] lines = content.split("\n");
+  //  System.out.println("-- Dumping " + from);
+    for (String line : lines)
+    {
+      Matcher matcher = pattern.matcher(line);
+      if (matcher.find())
+      {
+        String type  = matcher.group(1);
+        String name  = matcher.group(2);
+        String label = matcher.group(3);
+        if (!"Parent Directory".equals(label))
+        {
+          if ("DIR".equals(type))
+  //        drillDown(from + name, localRoot + name.replace('/', File.separatorChar), resource);
+            drillDown(from + name, localRoot + name, resource, restart);
+          else
+          {
+            String origin      = from + name;
+            String destination = localRoot + name;
+//          System.out.println("Downloading " + origin + " as " + destination);
+            resource.add(new String[] { origin, destination, restart });
+          }
+        }
+      } 
+    }
+  }
+  
+  public static String getContent(String url) throws Exception
+  {
+    String ret = null;
+    try
+    {
+      byte content[] = readURL(new URL(url));
+      ret = new String(content);
+    }
+    catch(Exception e)
+    {
+      throw e;
+    }
+    return ret;
+  }
+
+  private static byte[] readURL(URL url) throws Exception
+  {
+    byte content[] = null;
+    try
+    {
+      URLConnection newURLConn = url.openConnection();
+      InputStream is = newURLConn.getInputStream();
+      byte aByte[] = new byte[2];
+      int nBytes;
+      long started = System.currentTimeMillis();
+      int nbLoop = 1;
+      while((nBytes = is.read(aByte, 0, 1)) != -1) 
+      {
+        content = appendByte(content, aByte[0]);
+        if (content.length > (nbLoop * 1000))
+        {
+          long now = System.currentTimeMillis();
+          long delta = now - started;
+          double rate = (double)content.length / ((double)delta / 1000D);
+          System.out.println("Downloading at " + rate + " bytes per second.");
+          nbLoop++;
+        }
+      }
+    }
+    catch(IOException e)
+    {
+      System.err.println("ReadURL for " + url.toString() + "\nnewURLConn failed :\n" + e);
+      throw e;
+    }
+    catch(Exception e)
+    {
+      System.err.println("Exception for: " + url.toString());
+    }
+    return content;
+  }
+
+  public static byte[] appendByte(byte c[], byte b)
+  {
+    int newLength = c != null ? c.length + 1 : 1;
+    byte newContent[] = new byte[newLength];
+    for(int i = 0; i < newLength - 1; i++)
+      newContent[i] = c[i];
+
+    newContent[newLength - 1] = b;
+    return newContent;
+  }
+    
+  public static byte[] appendByteArrays(byte c[], byte b[], int n)
+  {
+    int newLength = c != null ? c.length + n : n;
+    byte newContent[] = new byte[newLength];
+    if (c != null)
+    {
+      for (int i=0; i<c.length; i++)
+        newContent[i] = c[i];
+    }
+    int offset = (c!=null?c.length:0);
+    for (int i=0; i<n; i++)
+      newContent[offset + i] = b[i];
+    return newContent;
+  }    
 }
 
