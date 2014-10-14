@@ -559,7 +559,7 @@ public class Utilities
 //  if (amount > SECOND || str.length() > 0)
     {
       int second = (int)(amount / SECOND);
-      str += (second + "." + (amount % 1000) + (small?" s ":" second(s) "));
+      str += (second + ((amount % 1000) != 0 ? "." + (amount % 1000) : "") + (small?" s ":" second(s) "));
       amount -= (second * SECOND);
     }
     return str;
