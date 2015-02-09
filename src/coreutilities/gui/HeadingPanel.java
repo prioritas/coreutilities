@@ -97,7 +97,19 @@ public class HeadingPanel
 
   private boolean withColorGradient = true;
   private boolean withCustomColors  = false;
-  
+  private int labelStep = 15;
+  private int digitFontSize = 12;
+
+  public void setDigitFontSize(int digitFontSize)
+  {
+    this.digitFontSize = digitFontSize;
+  }
+
+  public void setLabelStep(int labelStep)
+  {
+    this.labelStep = labelStep;
+  }
+
   private Color bgColor = null,
                 tickColor = null;
 
@@ -129,7 +141,6 @@ public class HeadingPanel
                                       RenderingHints.VALUE_ANTIALIAS_ON);      
     int w = this.getWidth();
     int h = this.getHeight();
-    final int FONT_SIZE = 12;
 
     Color startColor = Color.black; // new Color(255, 255, 255);
     Color endColor   = Color.gray; // new Color(102, 102, 102);
@@ -173,7 +184,7 @@ public class HeadingPanel
     else
       gr.setColor(tickColor);
     float oneDegree = (float)w / roseWidth; // 30 degrees each side
-    // One graduation every 1 & 5, one label every 15
+    // One graduation every 1 & 5, one label every 'labelStep'
     for (int rose=hdg-(int)(roseWidth / 2f); rose<=hdg+(int)(roseWidth / 2f); rose++)
     {
       int roseToDisplay = rose;
@@ -188,10 +199,10 @@ public class HeadingPanel
         gr.drawLine(abscisse, 0, abscisse, 5);
         gr.drawLine(abscisse, h - 5, abscisse, h);
       }
-      if (rose % 15 == 0)
+      if (rose % labelStep == 0)
       {
         Font f = gr.getFont();
-        gr.setFont(new Font("Arial", Font.BOLD, FONT_SIZE));
+        gr.setFont(new Font("Arial", Font.BOLD, digitFontSize));
         String roseStr = Integer.toString(Math.round(roseToDisplay));
         boolean cardinal = false;
         if (withCardinalPoints)
@@ -205,7 +216,7 @@ public class HeadingPanel
         if (withNumber || (cardinal && withCardinalPoints))
         {
           int strWidth  = gr.getFontMetrics(gr.getFont()).stringWidth(roseStr);
-          gr.drawString(roseStr, abscisse - strWidth / 2, (h / 2) + (FONT_SIZE / 2) );
+          gr.drawString(roseStr, abscisse - strWidth / 2, (h / 2) + (digitFontSize / 2) );
         }
         gr.setFont(f);        
       }

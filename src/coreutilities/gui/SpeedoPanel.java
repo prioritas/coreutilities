@@ -42,7 +42,7 @@ public class SpeedoPanel
   
   private final static double EXTERNAL_RADIUS_COEFF = 1.050;
   private final static double INTERNAL_RADIUS_COEFF = 1.025;
-  
+  //                                                   F: 0  1  2  3   4   5   6   7   8   9  10  11  12
   private final static int[] BEAUFORT_SCALE = new int[] { 0, 1, 4, 7, 11, 16, 22, 28, 34, 41, 48, 56, 64 };
   
   private double speed = 0D;
@@ -424,23 +424,26 @@ public class SpeedoPanel
       ((Graphics2D)g).setStroke(stroke);  
       int externalScaleRadius = (int)(radius * EXTERNAL_RADIUS_COEFF);
       int internalScaleRadius = (int)(radius * INTERNAL_RADIUS_COEFF);
-      Color[] bColor = new Color[] { Color.black, Color.white };
-//    Color[] bColor = new Color[] { Color.green, Color.red };
+//    Color[] bColor = new Color[] { Color.white, Color.black };
+      Color[] bColor = new Color[] { Color.orange, Color.cyan };
+      double fromSpeed = speedToAngle(BEAUFORT_SCALE[0]);
       for (int b=1; b<BEAUFORT_SCALE.length; b++)
-      {
-        double fromSpeed = speedToAngle(BEAUFORT_SCALE[b - 1]);
+      {        
         double toSpeed   = speedToAngle(BEAUFORT_SCALE[b]>maxSpeed?maxSpeed:BEAUFORT_SCALE[b]);
         g2d.setColor(bColor[b % 2]);
-        Shape starBoardSide = new Arc2D.Float((center.x - externalScaleRadius), 
-                                              (center.y - externalScaleRadius),
-                                              (float)(2 * radius), 
-                                              (float)(2 * radius), 
-                                              (float)(180 - fromSpeed), 
-                                              (float)(fromSpeed - toSpeed),
-                                              Arc2D.OPEN);
-        ((Graphics2D) g).draw(starBoardSide);
+        // The origin of the angles is on the right (East). They turn counter-clockwise.
+        float extent = (float)(fromSpeed - toSpeed);
+        Shape oneBeaufortDegree = new Arc2D.Float((center.x - externalScaleRadius), // The X coordinate of the upper-left corner of the arc's framing rectangle.
+                                                  (center.y - externalScaleRadius), // The Y coordinate of the upper-left corner of the arc's framing rectangle.
+                                                  (float)(2 * externalScaleRadius), // The overall width of the full ellipse of which this arc is a partial section.
+                                                  (float)(2 * externalScaleRadius), // The overall height of the full ellipse of which this arc is a partial section.
+                                                  (float)(180f - fromSpeed),        // The starting angle of the arc in degrees.
+                                                  extent,                           // The angular extent of the arc in degrees.
+                                                  Arc2D.OPEN);                      // The closure type for the arc: Arc2D.OPEN, Arc2D.CHORD, or Arc2D.PIE.
+        ((Graphics2D) g).draw(oneBeaufortDegree);
         if (BEAUFORT_SCALE[b] > maxSpeed)
           break;
+        fromSpeed = toSpeed;
       }
       ((Graphics2D)g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
       ((Graphics2D)g).setStroke(origStroke);  
@@ -509,7 +512,7 @@ public class SpeedoPanel
       int fromY = center.y + (int)(radius * Math.cos(Math.toRadians(d - 180)));
       int toX   = center.x + (int)(scaleRadius * Math.sin(Math.toRadians(d - 180)));
       int toY   = center.y + (int)(scaleRadius * Math.cos(Math.toRadians(d - 180)));
-      g2d.drawLine(fromX, fromY, toX, toY);
+      g2d.drawLine(fromX, fromY, toX, toY); // Ticks
       if (s % bigTick == 0) 
       {
         Font f = g2d.getFont();
@@ -563,7 +566,8 @@ public class SpeedoPanel
   private double speedToAngle(double s)
   {
     double angle = s * speedUnitRatio;
-    return angle + DISPLAY_OFFSET;
+    angle += DISPLAY_OFFSET;
+    return angle;
   }
   
   private final static DecimalFormat DF = new DecimalFormat("00.0");
