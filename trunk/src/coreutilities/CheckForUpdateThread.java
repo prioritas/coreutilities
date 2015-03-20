@@ -102,7 +102,7 @@ public class CheckForUpdateThread extends Thread
       if (verbose) 
         System.out.println("Checking for update for " + nbResource + " file(s).");
       resource = new ArrayList<String[]>(nbResource);
-      for (int i = 0; i < nbResource; i++)
+      for (int i=0; i<nbResource; i++)
       {
         XMLElement data = (XMLElement) nl.item(i);
         String url = data.getAttribute("url");
@@ -118,7 +118,11 @@ public class CheckForUpdateThread extends Thread
           CheckForUpdateThread.drillDown(fromUrl, destination, resource, restart);
         }
         else
+        {
+          if (verbose)
+            System.out.println("Adding resource [" + url + "]");
           resource.add(new String[] { url, file, restart });
+        }
       }
     }
     catch (Exception ex)
@@ -143,6 +147,8 @@ public class CheckForUpdateThread extends Thread
           URL url = new URL(pair[0]);
           File localFile = new File(pair[1]);
           boolean restart = pair[2].equals("y");
+          if (verbose)
+            System.out.println("Checking for update [" + pair[0] + "], [" + pair[1] + "]");
 
           Date fileDate = null;
           if (localFile.exists())
@@ -167,7 +173,7 @@ public class CheckForUpdateThread extends Thread
             // List all the response headers from the server.
             // Note: The first call to getHeaderFieldKey() will implicit send
             // the HTTP request to the server.
-            for (int j = 0; ; j++)
+            for (int j=0; ; j++)
             {
               try
               {
